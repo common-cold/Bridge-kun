@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0",
+    "ethers": "^6.13.5",
+    "ioredis": "^5.5.0"
+  }
+}

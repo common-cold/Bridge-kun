@@ -1,0 +1,26 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.spacedDiv {
+  margin-bottom: 10px;
+}
+
+
+.walletButton {
+  width: 120px;
+  height: 30px;
+  background-color: pink;
+  border-radius: 10px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: bold;
+  padding-left: 7px;
+  padding-right: 7px;
+}
