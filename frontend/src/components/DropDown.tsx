@@ -11,7 +11,7 @@ export const DropdownList = memo(function (props : DropdownProps) {
         props.onChange(event.target.value);
     };
     return (
-        <select value={props.defaultValue} onChange={handleChange}>
+        <select className="inputBoxStyle" value={props.defaultValue} onChange={handleChange}>
         <option value="polygon">Polygon zkEVM Testnet</option>
         <option value="base">Base Sepolia Testnet</option>
         <option value="none" disabled>More coming soon...</option>

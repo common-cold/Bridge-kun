@@ -16,11 +16,32 @@ html, body, #root {
 .walletButton {
   width: 120px;
   height: 30px;
-  background-color: pink;
+  color: white;
+  background-color: #0098fe;
   border-radius: 10px;
+  border-width: 0;
   align-items: center;
-  font-size: 13px;
-  font-weight: bold;
+  width: 120px;
+  height: 35px;
   padding-left: 7px;
   padding-right: 7px;
+}
+
+.black {
+  color: #3b3c48;
+}
+
+.text-blue {
+  color: #0098fe;
+}
+
+.bg-blue {
+  background-color: #0098fe;
+}
+
+.inputBoxStyle {
+  height: 40px;
+  border-radius: 10px;
+  border: 2px solid #D3D3D3; 
+  padding-inline: 5px;
 }

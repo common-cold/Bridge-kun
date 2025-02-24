@@ -22,13 +22,10 @@ export function InputSections() {
     const [tokenAmount, setTokenAmount] = useRecoilState(tokenAmountAtom);
     const {address} = useAccount();
 
-    // console.log(primaryChain);
-    // console.log(secondaryChain);
-    // console.log(tokenAmount);
 
     return <div style={{display: "flex", flexDirection: "column", width: "350px", backgroundColor: "white", "margin": "90px 0px",
          "padding": "20px"}}>
-        <div className="spacedDiv" style={{fontWeight: "bold", fontSize: "30px"}}>Deposit Tokens</div>
+        <div className="black" style={{fontFamily: "Satoshi-Black", fontSize: "30px", marginBottom: "30px"}}>Deposit Tokens</div>
         <InputGroup labelName="From Network" defaultValue={primaryChain} onChange={setPrimaryChain}/>
         <InputGroup labelName="To Network" defaultValue={secondaryChain} onChange={setSecondaryChain}/>
         <AmountInput onChange={setTokenAmount}/>
@@ -38,7 +35,7 @@ export function InputSections() {
 
 const InputGroup = memo (function ({labelName, defaultValue, onChange}: InputGroupProps) {
     return <div style={{display: "flex", flexDirection: "column", marginBottom: "20px"}}>
-        <div className="spacedDiv" style={{}}>
+        <div className="spacedDiv black" style={{fontFamily: "Satoshi-Bold"}}>
             {labelName}
         </div>
         <DropdownList defaultValue={defaultValue} onChange={onChange}/>
@@ -52,13 +49,10 @@ const AmountInput = memo(function ({onChange} : AmountInputProps) {
     };
 
     return <div style={{display: "flex", flexDirection: "column", marginBottom: "20px"}}>
-        <div className="spacedDiv" style={{}}>
+        <div className="spacedDiv black" style={{fontFamily: "Satoshi-Bold"}}>
             Amount
         </div>
-        <input style={{
-            borderRadius: "10px",
-            borderColor: "black",
-            }}
+        <input className="inputBoxStyle"
             placeholder="20"
             onChange={handleChange}
         />
