@@ -9,8 +9,8 @@ import Bull from "bull";
 const PRIVATE_KEY = "1d9769632ceb474f4e1c99f4881a13b58ad4989de37f7ea5acb67dcf49c60850";
 const polygonProvider = new JsonRpcProvider("https://polygonzkevm-cardona.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG");
 const baseProvider = new JsonRpcProvider("https://base-sepolia.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG");
-const polygonBridgeAddress = "0x14C44420e7272c7858bf914e15d77BD92e616E7b";
-const baseBridgeAddress = "0x14c44420e7272c7858bf914e15d77bd92e616e7b";
+const polygonBridgeAddress = "0x473d98d7C906563aA2E82e0Ca239668c7400E92c";
+const baseBridgeAddress = "0x7355244Ea247c2304cc54aECe44a3c74A4aE3B97";
 const MINT_TOPIC = "Mint(address,uint256)";
 const BURN_TOPIC = "Burn(address,uint256)";
 
@@ -34,18 +34,18 @@ console.log(logQueue);
 
 async function launchIndexer() {
     console.log("In indexer");
-    let currPolygonBlock = await polygonProvider.getBlockNumber() - 40;
-    let currBaseBlock = await baseProvider.getBlockNumber() - 40;
+    let currPolygonBlock = await polygonProvider.getBlockNumber() - 20;
+    let currBaseBlock = await baseProvider.getBlockNumber() - 20;
     console.log("Passed 1");
     console.log(`CURR POLYGON: ${currPolygonBlock}`);
-    // console.log(`CURR BASE: ${currBaseBlock}`);
+    console.log(`CURR BASE: ${currBaseBlock}`);
 
     while(true) {
         let latestPolygon = await polygonProvider.getBlockNumber(); 
         let latestBase = await baseProvider.getBlockNumber();
         console.log(`LATEST POLYGON: ${latestPolygon}`);
-        // console.log(`LATEST BASE: ${latestBase}`);
-        if(latestPolygon - currPolygonBlock < 30 || latestBase - currBaseBlock < 30) {
+        console.log(`LATEST BASE: ${latestBase}`);
+        if(latestPolygon - currPolygonBlock < 10 || latestBase - currBaseBlock < 10) {
             console.log("TOO Close!");
             await new Promise(r => setTimeout(r, 10000));
             continue;

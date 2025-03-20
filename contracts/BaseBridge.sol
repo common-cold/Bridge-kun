@@ -24,10 +24,10 @@ contract BaseBridge is Ownable{
         emit Burn(msg.sender, _amount); 
     }
 
-    function withdraw(IBNFSCoin _tokenAddress, uint256 _amount) public {
-        require(balanceMapping[msg.sender] >= _amount, "You don't have enough money to withdraw");
-        _tokenAddress.mint(msg.sender, _amount);
-        balanceMapping[msg.sender] -= _amount;
+    function withdraw(IBNFSCoin _tokenAddress, address _receiver, uint256 _amount) public onlyOwner {
+        require(balanceMapping[_receiver] >= _amount, "You don't have enough money to withdraw");
+        _tokenAddress.mint(_receiver, _amount);
+        balanceMapping[_receiver] -= _amount;
     }
 
     function depositedOnOppositeChain(address ownerAddress, uint256 _amount) public onlyOwner{

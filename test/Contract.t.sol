@@ -64,8 +64,7 @@ contract TestContract is Test {
         
         
         //withdraw BNFSCoin from base bridge
-        vm.prank(myAddr);
-        baseBridge.withdraw(bnfsCoin, 10);
+        baseBridge.withdraw(bnfsCoin, myAddr, 10);
 
         assertEq(bnfsCoin.balanceOf(myAddr), 10);
         assertEq(bnfsCoin.totalSupply(), 10);
@@ -89,8 +88,7 @@ contract TestContract is Test {
 
 
         //withdrawing from polygon bridge
-        vm.prank(myAddr);
-        polygonBridge.withdraw(nfsCoin, 2);
+        polygonBridge.withdraw(nfsCoin, myAddr, 2);
         assertEq(polygonBridge.getBalance(myAddr), 1);
         assertEq(nfsCoin.balanceOf(myAddr), 72);
         assertEq(nfsCoin.totalSupply(), 100);

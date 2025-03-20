@@ -22,10 +22,10 @@ contract PolygonBridge is Ownable{
         emit Mint(msg.sender, _amount);
     }
 
-    function withdraw(IERC20 _tokenAddress, uint256 _amount) public {
-        require(balanceMapping[msg.sender] >= _amount, "You don't have enough money to withdraw");
-        require(_tokenAddress.transfer(msg.sender, _amount));
-        balanceMapping[msg.sender] -= _amount;
+    function withdraw(IERC20 _tokenAddress, address _receiver, uint256 _amount) public onlyOwner {
+        require(balanceMapping[_receiver] >= _amount, "You don't have enough money to withdraw");
+        require(_tokenAddress.transfer(_receiver, _amount));
+        balanceMapping[_receiver] -= _amount;
     }
 
     function burnedOnOppositeChain(address ownerAddress, uint256 _amount) public onlyOwner {

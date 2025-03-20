@@ -169,6 +169,11 @@ exports.polygonAbi = [
                 "type": "address"
             },
             {
+                "internalType": "address",
+                "name": "_receiver",
+                "type": "address"
+            },
+            {
                 "internalType": "uint256",
                 "name": "_amount",
                 "type": "uint256"
@@ -345,6 +350,11 @@ exports.baseAbi = [
             {
                 "internalType": "contract IBNFSCoin",
                 "name": "_tokenAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_receiver",
                 "type": "address"
             },
             {
