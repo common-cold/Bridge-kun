@@ -7,8 +7,8 @@ import "../index.css";
 
 
 export function NavBar() {
-    return <div style={{height: "8vh", padding: "15px 20px", display: "flex", justifyContent:"space-between", alignItems: "center", backgroundColor: "#e9dff1", position: "relative"}}>
-        <div className="text-blue" style={{fontSize: "32px", fontWeight: "bold", fontFamily: "Satoshi-Bold"}}>
+    return <div className="bg-blue" style={{height: "8vh", padding: "15px 20px", display: "flex", justifyContent:"space-between", alignItems: "center", position: "relative"}}>
+        <div style={{fontSize: "32px", fontWeight: "bold", color: "white", fontFamily: "Satoshi-Bold"}}>
             Bridge-kun ^_^
         </div>
         <ConnectWallet/>
@@ -46,14 +46,14 @@ function ConnectWallet() {
     return <div style={{
         display: "flex", 
         flexDirection: "column",
-        position: "absolute",  // Ensures it appears below the navbar
-        top: "50%",           // Starts from the bottom of the navbar
+        position: "absolute",  
+        top: "50%",           
         left: "auto",
-        right: 10,               // Aligns with navbar's left edge
-        background: "white",   // Optional: Give it a background
-        padding: "8px",        // Optional: Adds some spacing
-        borderRadius: "5px",   // Optional: Rounded corners
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" // Optional: Adds a shadow
+        right: 10,            
+        background: "white",  
+        padding: "8px",       
+        borderRadius: "5px",
+        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)"
       }}>
         {connectors.map(connector => {
          return <button key={connector.id} onClick={()=> {

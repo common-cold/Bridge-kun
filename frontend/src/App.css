@@ -32,16 +32,31 @@ html, body, #root {
 }
 
 .text-blue {
-  color: #0098fe;
+  color: #3674e5;
 }
 
 .bg-blue {
-  background-color: #0098fe;
+  background-color: #3674e5;
 }
 
 .inputBoxStyle {
   height: 40px;
   border-radius: 10px;
-  border: 2px solid #D3D3D3; 
-  padding-inline: 5px;
+  border: 0.5px solid #D3D3D3; 
+  padding-inline: 10px;
+}
+
+.dropDownStyle {
+  height: 40px;
+  border-radius: 10px;
+  border: 0.5px solid #D3D3D3;
+  padding-inline: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.iconStyle {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
 }

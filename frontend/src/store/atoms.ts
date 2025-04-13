@@ -1,13 +1,23 @@
 import { atom } from "recoil";
+import baseIcon from "../assets/base.png";
+import polygonIcon from "../assets/polygon.png";
 
 export const primaryChainAtom = atom({
     key: "primaryChainAtom",
-    default: "polygon"
+    default: {
+        value: 'polygon',
+        label: 'Polygon zkEVM',
+        icon: polygonIcon
+    }
 });
 
 export const secondaryChainAtom = atom({
     key: "secondaryChainAtom",
-    default: "base"
+    default:  {
+        value: 'base',
+        label: 'Base Sepolia',
+        icon: baseIcon
+    }
 });
 
 export const tokenAmountAtom = atom({

@@ -5,8 +5,7 @@ import { ethers } from "ethers";
 import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
 import { useRecoilState } from "recoil";
 import { buttonDisabledAtom } from "../store/atoms";
-import { estimateContractGas, estimateGas } from "viem/actions";
-import { baseBridgeContract, polygonBridgeContract, publicClient } from '../config'
+import { baseBridgeContract, polygonBridgeContract } from '../config'
 import { QueryObserverResult } from "@tanstack/react-query";
 import { ReadContractErrorType } from "wagmi/actions";
 
