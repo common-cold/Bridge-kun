@@ -7,7 +7,7 @@ import "../index.css";
 
 
 export function NavBar() {
-    return <div className="bg-blue" style={{height: "8vh", padding: "15px 20px", display: "flex", justifyContent:"space-between", alignItems: "center", position: "relative"}}>
+    return <div style={{height: "8vh", padding: "15px 20px", display: "flex", justifyContent:"space-between", alignItems: "center", position: "relative"}}>
         <div style={{fontSize: "32px", fontWeight: "bold", color: "white", fontFamily: "Satoshi-Bold"}}>
             Bridge-kun ^_^
         </div>
@@ -40,7 +40,7 @@ function ConnectWallet() {
     
     
     if (!showWallets) {
-        return <button className="walletButton" style={{fontFamily: "Satoshi-Black", }} onClick={()=> setShowWallets(true)}>Connect Wallet</button>
+        return <button className="walletButton" style={{fontFamily: "Satoshi-Bold", boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'}} onClick={()=> setShowWallets(true)}>Connect Wallet</button>
     }   
 
     return <div style={{

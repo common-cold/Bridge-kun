@@ -48,9 +48,8 @@ export function InputSections() {
     console.log("secondaryChhain = " + JSON.stringify(secondaryChain));
 
 
-    return <div style={{display: "flex", flexDirection: "column", width: "350px", backgroundColor: "white", "margin": "90px 0px",
+    return <div style={{display: "flex", flexDirection: "column", width: "350px", backgroundColor: "white", "margin": "10px 0px",
          "padding": "20px", borderRadius: "15px", borderColor: "#D3D3D3", borderStyle: "solid", borderWidth: "0.1px", boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
-        <div className="black" style={{fontFamily: "Satoshi-Black", fontSize: "30px", marginBottom: "30px"}}>Deposit Tokens</div>
         <InputGroup labelName="From Network" defaultChain={primaryChain} onChange={setPrimaryChain}/>
         <AmountInput onChange={setTokenAmount}/>
         <ArrowSymbol/>
