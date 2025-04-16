@@ -15,14 +15,12 @@ html, body, #root {
 
 .walletButton {
   width: 120px;
-  height: 30px;
+  height: 35px;
   color: white;
   background-color: black;
   border-radius: 10px;
   border-width: 0;
   align-items: center;
-  width: 120px;
-  height: 35px;
   padding-left: 7px;
   padding-right: 7px;
 }

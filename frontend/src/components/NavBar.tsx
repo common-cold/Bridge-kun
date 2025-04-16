@@ -1,27 +1,41 @@
 import { useRecoilState } from "recoil";
-import { useAccount, useConnect, useDisconnect } from "wagmi"
-import { showWalletsAtom } from "../store/atoms";
+import { polygonZkEvmCardona } from "viem/chains";
+import { useAccount, useConnect, useDisconnect, useWriteContract } from "wagmi"
+import { addressAtom, showWalletsAtom } from "../store/atoms";
 import '../App.css';
 import "../index.css";
+import { nfsCoinAbi } from "../contract/abi";
+import { useEffect, useState } from "react";
+import { ethers } from "ethers";
+import toast from "react-hot-toast";
 
-
+const POLYGON_CARDONA_ID = polygonZkEvmCardona.id;
 
 export function NavBar() {
+    const [walletAddress, setAddress] = useRecoilState(addressAtom);
+
     return <div style={{height: "8vh", padding: "15px 20px", display: "flex", justifyContent:"space-between", alignItems: "center", position: "relative"}}>
-        <div style={{fontSize: "32px", fontWeight: "bold", color: "white", fontFamily: "Satoshi-Bold"}}>
+        {/* <div style={{fontSize: "32px", fontWeight: "bold", color: "white", fontFamily: "Satoshi-Bold"}}>
             Bridge-kun ^_^
-        </div>
-        <ConnectWallet/>
+        </div> */}
+        <AirdropButton/>
+        <ConnectWallet setAddress={setAddress}/>
     </div>
 }
 
-function ConnectWallet() {
+function ConnectWallet({setAddress}: any) {
     const {address, connector} = useAccount();
     const {connectors, connect} = useConnect(); 
     const {disconnect} = useDisconnect();
     const [showWallets, setShowWallets] = useRecoilState(showWalletsAtom);
 
+    
+    function setWalletAddressInner(address: string) {
+        setAddress(address);
+    }
+    
     if (address) {
+        setWalletAddressInner(address);
         return <button className="walletButton" 
         style={{display: "flex", justifyContent: "space-between"}}
         onClick={()=> {
@@ -40,8 +54,8 @@ function ConnectWallet() {
     
     
     if (!showWallets) {
-        return <button className="walletButton" style={{fontFamily: "Satoshi-Bold", boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'}} onClick={()=> setShowWallets(true)}>Connect Wallet</button>
-    }   
+        return <button className="walletButton" style={{fontFamily: "Satoshi-Bold", width: "120px", boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'}} onClick={()=> setShowWallets(true)}>Connect Wallet</button>
+    }
 
     return <div style={{
         display: "flex", 
@@ -66,5 +80,44 @@ function ConnectWallet() {
             Connect
             </button>
         })}
+    </div>
+}
+
+
+function AirdropButton() {
+    const { address } = useAccount();
+    const [isButttonDisabled, setButtonDisabled] = useState(false);
+    const { writeContractAsync } = useWriteContract();
+
+    async function airdrop() {
+        const tx = await writeContractAsync({
+            abi: nfsCoinAbi,
+            address: import.meta.env.VITE_NFSCOIN_ADDRESS,
+            functionName: "mint",
+            args: [address , ethers.parseUnits("10", 18)],
+            chainId: POLYGON_CARDONA_ID,
+        });
+
+        toast.success(
+            <div>
+              Airdrop claimed!<br />
+              <a
+                href={`https://sepolia.etherscan.io/tx/${tx}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#3674e5', textDecoration: 'underline' }}
+              >
+                View on Etherscan
+              </a>
+            </div>,
+            { duration: 6000 }
+          );
+        
+    }
+    console.log("wallet:" + address);
+    return <div>
+        <button className="walletButton" style={{fontFamily: "Satoshi-Bold", fontSize: "12px", width: "120px", boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'}}
+        onClick={()=> airdrop()} disabled = {!address || isButttonDisabled}>
+            Airdrop NFSCoins</button>
     </div>
 }

@@ -3,6 +3,7 @@ import './App.css'
 import { InputSections } from './components/InputSections'
 import { NavBar } from './components/NavBar'
 import { WagmiProvider } from 'wagmi'
+import { Toaster } from "react-hot-toast";
 import { config } from './config'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HeroSection } from './components/HeroSection'
@@ -20,10 +21,14 @@ function App() {
             // background: 'radial-gradient(circle, #89f7fe 0%, #66a6ff 100%)'
         }}>
           <NavBar/>
-          <div style={{display: "flex", flexDirection: "column", alignItems: "center", margin: "60px 0"}}>
+          <div style={{flex: "1", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center"}}>
             <HeroSection/>
             <InputSections/>
           </div>
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+          />
         </div>
       </RecoilRoot> 
     </QueryClientProvider>

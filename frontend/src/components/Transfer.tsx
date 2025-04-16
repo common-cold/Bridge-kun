@@ -8,6 +8,7 @@ import { buttonDisabledAtom } from "../store/atoms";
 import { baseBridgeContract, polygonBridgeContract } from '../config'
 import { QueryObserverResult } from "@tanstack/react-query";
 import { ReadContractErrorType } from "wagmi/actions";
+import toast from "react-hot-toast";
 
 interface TransferProps {
     primaryChain: string,
@@ -100,6 +101,21 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                 if(!tx3) throw new Error("Withdraw Error on Base Bridge");
                 console.log(JSON.stringify(tx3));
 
+                toast.success(
+                            <div>
+                              Bridge Successful!<br />
+                              <a
+                                href={`https://sepolia.etherscan.io/tx/${tx3}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: '#3674e5', textDecoration: 'underline' }}
+                              >
+                                View on Etherscan
+                              </a>
+                            </div>,
+                            { duration: 6000 }
+                );
+
             } else if (primaryChain == "base" && secondaryChain == "polygon") {
                 console.log("inside second");
 
@@ -134,12 +150,32 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                 const tx3 = await polygonBridgeContract.withdraw(import.meta.env.VITE_NFSCOIN_ADDRESS, walletAddress, tokenAmount);
                 if(!tx3) throw new Error("Withdraw Error on Base Bridge");
                 console.log(JSON.stringify(tx3));
+
+                toast.success(
+                    <div>
+                      Bridge Successful!<br />
+                      <a
+                        href={`https://sepolia.etherscan.io/tx/${tx3}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#3674e5', textDecoration: 'underline' }}
+                      >
+                        View on Etherscan
+                      </a>
+                    </div>,
+                    { duration: 6000 }
+                );
             }
             
             setButtonDisabled(false);
     
         } catch(e) {
-            alert(e);
+            toast.error(
+                <div>
+                  {e as any}
+                </div>,
+                { duration: 6000 }
+            );  
             console.log(e);
             setButtonDisabled(false);
         }
