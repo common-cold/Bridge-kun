@@ -5,10 +5,11 @@ import { ethers } from "ethers";
 import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
 import { useRecoilState } from "recoil";
 import { buttonDisabledAtom } from "../store/atoms";
-import { baseBridgeContract, polygonBridgeContract } from '../config'
+import { baseBridgeContract, baseClient, polygonBridgeContract, polygonClient } from '../config'
 import { QueryObserverResult } from "@tanstack/react-query";
-import { ReadContractErrorType } from "wagmi/actions";
+import { ReadContractErrorType, waitForTransaction } from "wagmi/actions";
 import toast from "react-hot-toast";
+import { waitForTransactionReceipt } from "viem/actions";
 
 interface TransferProps {
     primaryChain: string,
@@ -68,8 +69,14 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     args: [import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS, tokenAmount],
                     chainId: POLYGON_CARDONA_ID,
                 });
-            
-                if(!tx) throw new Error("Approval Error");
+                let polygonReceipt = await polygonClient.waitForTransactionReceipt({
+                    hash: tx,
+                    confirmations: 1
+                });
+                if(polygonReceipt.status === 'reverted') {
+                    console.log(JSON.stringify(polygonReceipt.logs));
+                    throw new Error("Approval Error");
+                }
                 console.log(JSON.stringify(tx));
 
 
@@ -82,7 +89,14 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     chainId: POLYGON_CARDONA_ID,
                     gas: 300_000n,
                 });
-                if(!tx2) throw new Error("Deposit Error on Polygon Bridge");
+                polygonReceipt = await polygonClient.waitForTransactionReceipt({
+                    hash: tx2,
+                    confirmations: 1
+                });
+                if(polygonReceipt.status === 'reverted') {
+                    console.log(JSON.stringify(polygonReceipt.logs));
+                    throw new Error("Deposit Error on Polygon Bridge");
+                }
                 console.log(JSON.stringify(tx2));
 
 
@@ -98,22 +112,29 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                 }
 
                 const tx3 = await baseBridgeContract.withdraw(import.meta.env.VITE_BNFSCOIN_ADDRESS, walletAddress, tokenAmount);
-                if(!tx3) throw new Error("Withdraw Error on Base Bridge");
+                let baserReceipt = await baseClient.waitForTransactionReceipt({
+                    hash: tx3.hash,
+                    confirmations: 1
+                });
+                if(baserReceipt.status === 'reverted') {
+                    console.log(JSON.stringify(baserReceipt.logs));
+                    throw new Error("Withdraw Error on Base Bridge");
+                }
                 console.log(JSON.stringify(tx3));
 
                 toast.success(
                             <div>
                               Bridge Successful!<br />
                               <a
-                                href={`https://sepolia.etherscan.io/tx/${tx3}`}
+                                href={`https://sepolia.basescan.org/tx/${tx3.hash}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{ color: '#3674e5', textDecoration: 'underline' }}
                               >
-                                View on Etherscan
+                                View on Base Sepolia Explorer
                               </a>
                             </div>,
-                            { duration: 6000 }
+                    {duration: 10000}
                 );
 
             } else if (primaryChain == "base" && secondaryChain == "polygon") {
@@ -124,7 +145,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                 setButtonDisabled(true);
 
                 //Call burn on base bridge
-                const tx2 = await writeContractAsync({
+                const tx = await writeContractAsync({
                     abi: baseAbi,
                     address: import.meta.env.VITE_BASE_BRIDGE_ADDRESS,
                     functionName: "burn",
@@ -132,8 +153,15 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     chainId: BASE_SEPOLIA_ID,
                     gas: 300_000n,
                 });
-                if(!tx2) throw new Error("Burn Error on Polygon Bridge");
-                console.log(JSON.stringify(tx2));
+                let baserReceipt = await baseClient.waitForTransactionReceipt({
+                    hash: tx,
+                    confirmations: 1
+                });
+                if(baserReceipt.status === 'reverted') {
+                    console.log(JSON.stringify(baserReceipt.logs));
+                    throw new Error("Burn Error on Polygon Bridge");
+                }
+                console.log(JSON.stringify(tx));
 
 
                 //Check if the event relayed to polygon bridge via nodejs indexer by polling the user balance 
@@ -147,36 +175,44 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     await new Promise(r => setTimeout(r, 10000));
                 }
 
-                const tx3 = await polygonBridgeContract.withdraw(import.meta.env.VITE_NFSCOIN_ADDRESS, walletAddress, tokenAmount);
-                if(!tx3) throw new Error("Withdraw Error on Base Bridge");
-                console.log(JSON.stringify(tx3));
+                const tx2 = await polygonBridgeContract.withdraw(import.meta.env.VITE_NFSCOIN_ADDRESS, walletAddress, tokenAmount);
+                let polygonReceipt = await polygonClient.waitForTransactionReceipt({
+                    hash: tx2.hash,
+                    confirmations: 1
+                });
+                if(polygonReceipt.status === 'reverted') {
+                    console.log(JSON.stringify(polygonReceipt.logs));
+                    throw new Error("Withdraw Error on Base Bridge");
+                }
+                console.log(JSON.stringify(tx2));
 
                 toast.success(
                     <div>
                       Bridge Successful!<br />
                       <a
-                        href={`https://sepolia.etherscan.io/tx/${tx3}`}
+                        href={`https://cardona-zkevm.polygonscan.com/tx/${tx2.hash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: '#3674e5', textDecoration: 'underline' }}
                       >
-                        View on Etherscan
+                        View on Polygon Cardona Explorer
                       </a>
                     </div>,
-                    { duration: 6000 }
+                    {duration: 10000}
                 );
             }
             
             setButtonDisabled(false);
     
         } catch(e) {
+            const error = e as Error;
             toast.error(
                 <div>
-                  {e as any}
+                  {error.message}
                 </div>,
                 { duration: 6000 }
-            );  
-            console.log(e);
+            );
+            console.log(error.message);  
             setButtonDisabled(false);
         }
 

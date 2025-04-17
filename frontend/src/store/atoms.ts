@@ -34,8 +34,3 @@ export const buttonDisabledAtom = atom({
     key: "buttonDisabledAtom",
     default: false
 });
-
-export const addressAtom = atom({
-    key: "addressAtom",
-    default: null
-})

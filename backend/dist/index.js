@@ -39,8 +39,8 @@ console.log(logQueue);
 function launchIndexer() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("In indexer");
-        let currPolygonBlock = (yield polygonProvider.getBlockNumber()) - 20;
-        let currBaseBlock = (yield baseProvider.getBlockNumber()) - 20;
+        let currPolygonBlock = (yield polygonProvider.getBlockNumber()) - 15;
+        let currBaseBlock = (yield baseProvider.getBlockNumber()) - 15;
         console.log("Passed 1");
         console.log(`CURR POLYGON: ${currPolygonBlock}`);
         console.log(`CURR BASE: ${currBaseBlock}`);
@@ -51,7 +51,7 @@ function launchIndexer() {
             console.log(`LATEST BASE: ${latestBase}`);
             if (latestPolygon - currPolygonBlock < 10 || latestBase - currBaseBlock < 10) {
                 console.log("TOO Close!");
-                yield new Promise(r => setTimeout(r, 10000));
+                yield new Promise(r => setTimeout(r, 5000));
                 continue;
             }
             yield pollPolygon(currPolygonBlock);

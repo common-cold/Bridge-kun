@@ -6,6 +6,7 @@ import { Transfer } from "./Transfer"
 import { DropDownComponent } from "./DropDown"
 import baseIcon from "../assets/base.png";
 import polygonIcon from "../assets/polygon.png";
+import { Toaster } from "react-hot-toast"
 
 
 export interface ChainOption {

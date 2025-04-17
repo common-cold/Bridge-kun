@@ -25,8 +25,13 @@ export const config = createConfig({
     }
 });
 
-export const publicClient = createPublicClient({ 
+export const polygonClient = createPublicClient({ 
     chain: polygonZkEvmCardona,
     transport: http("https://polygonzkevm-cardona.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG")
+});
+
+export const baseClient = createPublicClient({ 
+    chain: baseSepolia,
+    transport: http("https://base-sepolia.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG")
 });
 
