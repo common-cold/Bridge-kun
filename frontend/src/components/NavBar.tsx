@@ -31,7 +31,7 @@ export function NavBar() {
 
 function ConnectWallet() {
     const {address, connector} = useAccount();
-    const {connectors, connect} = useConnect(); 
+    const {connectors} = useConnect(); 
     const {disconnect} = useDisconnect();
     const [showWallets, setShowWallets] = useRecoilState(showWalletsAtom);
     const dropDownRef = useRef<HTMLDivElement | null>(null);
