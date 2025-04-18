@@ -7,9 +7,8 @@ import { useRecoilState } from "recoil";
 import { buttonDisabledAtom } from "../store/atoms";
 import { baseBridgeContract, baseClient, polygonBridgeContract, polygonClient } from '../config'
 import { QueryObserverResult } from "@tanstack/react-query";
-import { ReadContractErrorType, waitForTransaction } from "wagmi/actions";
+import { ReadContractErrorType } from "wagmi/actions";
 import toast from "react-hot-toast";
-import { waitForTransactionReceipt } from "viem/actions";
 
 interface TransferProps {
     primaryChain: string,

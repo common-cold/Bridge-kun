@@ -5,7 +5,6 @@ import { showWalletsAtom } from "../store/atoms";
 import '../App.css';
 import "../index.css";
 import { nfsCoinAbi } from "../contract/abi";
-import { useState } from "react";
 import { ethers } from "ethers";
 import toast from "react-hot-toast";
 
