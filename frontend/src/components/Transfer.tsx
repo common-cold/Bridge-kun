@@ -122,7 +122,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                 console.log(JSON.stringify(tx3));
 
                 toast.success(
-                            <div>
+                            <div className="toastMessage">
                               Bridge Successful!<br />
                               <a
                                 href={`https://sepolia.basescan.org/tx/${tx3.hash}`}
@@ -186,7 +186,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                 console.log(JSON.stringify(tx2));
 
                 toast.success(
-                    <div>
+                    <div className="toastMessage">
                       Bridge Successful!<br />
                       <a
                         href={`https://cardona-zkevm.polygonscan.com/tx/${tx2.hash}`}
@@ -206,7 +206,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
         } catch(e) {
             const error = e as Error;
             toast.error(
-                <div>
+                <div className="toastMessage">
                   {error.message}
                 </div>,
                 { duration: 6000 }

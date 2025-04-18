@@ -58,3 +58,7 @@ html, body, #root {
   height: 20px;
   margin-right: 5px;
 }
+
+.toastMessage {
+  font-family: 'Satoshi-Bold', sans-serif;
+}
