@@ -1,4 +1,3 @@
-import { AddressLike } from "ethers";
 
 
 export interface QueueData {

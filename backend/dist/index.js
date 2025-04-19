@@ -16,13 +16,22 @@ const ethers_1 = require("ethers");
 const utils_1 = require("./utils/utils");
 const abi_1 = require("./contract/abi");
 const bull_1 = __importDefault(require("bull"));
-const PRIVATE_KEY = "1d9769632ceb474f4e1c99f4881a13b58ad4989de37f7ea5acb67dcf49c60850";
-const polygonProvider = new ethers_1.JsonRpcProvider("https://polygonzkevm-cardona.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG");
-const baseProvider = new ethers_1.JsonRpcProvider("https://base-sepolia.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG");
-const polygonBridgeAddress = "0x473d98d7C906563aA2E82e0Ca239668c7400E92c";
-const baseBridgeAddress = "0x7355244Ea247c2304cc54aECe44a3c74A4aE3B97";
-const MINT_TOPIC = "Mint(address,uint256)";
-const BURN_TOPIC = "Burn(address,uint256)";
+const dotenv_1 = __importDefault(require("dotenv"));
+var Chain;
+(function (Chain) {
+    Chain[Chain["Polygon"] = 0] = "Polygon";
+    Chain[Chain["Base"] = 1] = "Base";
+})(Chain || (Chain = {}));
+dotenv_1.default.config();
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const polygonRpcUrl = process.env.POLYGON_RPC_URL;
+const baseRpcUrl = process.env.BASE_RPC_URL;
+const polygonProvider = new ethers_1.JsonRpcProvider(polygonRpcUrl);
+const baseProvider = new ethers_1.JsonRpcProvider(baseRpcUrl);
+const polygonBridgeAddress = process.env.POLYGON_BRIDGE_ADDRESS;
+const baseBridgeAddress = process.env.BASE_BRIDGE_ADDRESS;
+const MINT_TOPIC = process.env.MINT_TOPIC;
+const BURN_TOPIC = process.env.BURN_TOPIC;
 const signerPolygon = new ethers_1.Wallet(PRIVATE_KEY, polygonProvider);
 const signerBase = new ethers_1.Wallet(PRIVATE_KEY, baseProvider);
 const polygonBridgeContract = new ethers_1.Contract(polygonBridgeAddress, abi_1.polygonAbi, signerPolygon);
@@ -36,28 +45,37 @@ const redisConfig = {
 };
 const logQueue = new bull_1.default("logQueue", redisConfig);
 console.log(logQueue);
-function launchIndexer() {
+function launchIndexer(chain) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("In indexer");
-        let currPolygonBlock = (yield polygonProvider.getBlockNumber()) - 15;
-        let currBaseBlock = (yield baseProvider.getBlockNumber()) - 15;
-        console.log("Passed 1");
-        console.log(`CURR POLYGON: ${currPolygonBlock}`);
-        console.log(`CURR BASE: ${currBaseBlock}`);
-        while (true) {
-            let latestPolygon = yield polygonProvider.getBlockNumber();
-            let latestBase = yield baseProvider.getBlockNumber();
-            console.log(`LATEST POLYGON: ${latestPolygon}`);
-            console.log(`LATEST BASE: ${latestBase}`);
-            if (latestPolygon - currPolygonBlock < 10 || latestBase - currBaseBlock < 10) {
-                console.log("TOO Close!");
-                yield new Promise(r => setTimeout(r, 5000));
-                continue;
+        if (chain === Chain.Polygon) {
+            console.log("In Polygon indexer");
+            let currPolygonBlock = (yield polygonProvider.getBlockNumber()) - 15;
+            while (true) {
+                let latestPolygon = yield polygonProvider.getBlockNumber();
+                console.log(`LATEST POLYGON: ${latestPolygon}`);
+                if (latestPolygon - currPolygonBlock < 10) {
+                    console.log("Polygon TOO Close!");
+                    yield new Promise(r => setTimeout(r, 5000));
+                    continue;
+                }
+                yield pollPolygon(currPolygonBlock);
+                currPolygonBlock++;
             }
-            yield pollPolygon(currPolygonBlock);
-            yield pollBase(currBaseBlock);
-            currPolygonBlock++;
-            currBaseBlock++;
+        }
+        else if (chain === Chain.Base) {
+            console.log("In Base indexer");
+            let currBaseBlock = (yield baseProvider.getBlockNumber()) - 15;
+            while (true) {
+                let latestBase = yield baseProvider.getBlockNumber();
+                console.log(`LATEST BASE: ${latestBase}`);
+                if (latestBase - currBaseBlock < 10) {
+                    console.log("Base TOO Close!");
+                    yield new Promise(r => setTimeout(r, 5000));
+                    continue;
+                }
+                yield pollBase(currBaseBlock);
+                currBaseBlock++;
+            }
         }
     });
 }
@@ -136,4 +154,5 @@ logQueue.process((job) => __awaiter(void 0, void 0, void 0, function* () {
     }
     return { success: true };
 }));
-launchIndexer();
+launchIndexer(Chain.Polygon);
+launchIndexer(Chain.Base);

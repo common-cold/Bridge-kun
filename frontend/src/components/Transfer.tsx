@@ -1,8 +1,8 @@
 import { Address } from "viem"
-import { useReadContract, useWriteContract } from "wagmi"
+import { useAccount, useReadContract, useWriteContract } from "wagmi"
 import { baseAbi, nfsCoinAbi, polygonAbi } from "../contract/abi";
 import { ethers } from "ethers";
-import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
+import { baseSepolia, polygonZkEvm, polygonZkEvmCardona } from "viem/chains";
 import { useRecoilState } from "recoil";
 import { buttonDisabledAtom } from "../store/atoms";
 import { baseBridgeContract, baseClient, polygonBridgeContract, polygonClient } from '../config'
@@ -26,6 +26,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
     
     const [buttonDisabled, setButtonDisabled] = useRecoilState(buttonDisabledAtom);
     const {writeContractAsync} = useWriteContract();
+    const { chainId } = useAccount();
 
     const {refetch : getBaseUserBalance} = useReadContract({
         abi: baseAbi,
@@ -42,19 +43,14 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
         args: [walletAddress],
         chainId: POLYGON_CARDONA_ID
     });
-
-    // const {refetch} = useReadContract({
-    //     abi: nfsCoinAbi,
-    //     address: import.meta.env.VITE_NFSCOIN_ADDRESS,
-    //     functionName: "balanceOf",
-    //     args: [walletAddress]
-    // });
     
     async function transfer() {
         try{
 
             if(primaryChain == "polygon" && secondaryChain == "base") {
-                console.log("inside first");
+                if (chainId !== polygonZkEvm.id) {
+                    throw new Error ("Please switch your network to Polygon zkEVm Cardona");
+                }
 
                 const tokenAmount = ethers.parseUnits(amount, 18);
                 
@@ -107,7 +103,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     if(data! >= tokenAmount){
                         break;
                     }
-                    await new Promise(r => setTimeout(r, 10000));
+                    await new Promise(r => setTimeout(r, 5000));
                 }
 
                 const tx3 = await baseBridgeContract.withdraw(import.meta.env.VITE_BNFSCOIN_ADDRESS, walletAddress, tokenAmount);
@@ -137,7 +133,9 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                 );
 
             } else if (primaryChain == "base" && secondaryChain == "polygon") {
-                console.log("inside second");
+                if (chainId !== baseSepolia.id) {
+                    throw new Error ("Please switch your network to Base Sepolia");
+                }
 
                 const tokenAmount = ethers.parseUnits(amount, 18);
 
@@ -171,7 +169,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     if(data! >= tokenAmount){
                         break;
                     }
-                    await new Promise(r => setTimeout(r, 10000));
+                    await new Promise(r => setTimeout(r, 5000));
                 }
 
                 const tx2 = await polygonBridgeContract.withdraw(import.meta.env.VITE_NFSCOIN_ADDRESS, walletAddress, tokenAmount);

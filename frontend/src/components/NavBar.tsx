@@ -21,9 +21,6 @@ interface ListComponentProps {
 export function NavBar() {
 
     return <div style={{height: "8vh", padding: "15px 20px", display: "flex", justifyContent:"space-between", alignItems: "center", position: "relative"}}>
-        {/* <div style={{fontSize: "32px", fontWeight: "bold", color: "white", fontFamily: "Satoshi-Bold"}}>
-            Bridge-kun ^_^
-        </div> */}
         <AirdropButton/>
         <ConnectWallet/>
     </div>
