@@ -137,7 +137,6 @@ function AirdropButton() {
           );
         
     }
-    console.log("wallet:" + address);
     return <div>
         <button className="walletButton" 
         style={{
