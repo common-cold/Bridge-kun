@@ -2,7 +2,7 @@ import { Address } from "viem"
 import { useAccount, useReadContract, useWriteContract } from "wagmi"
 import { baseAbi, nfsCoinAbi, polygonAbi } from "../contract/abi";
 import { ethers } from "ethers";
-import { baseSepolia, polygonZkEvm, polygonZkEvmCardona } from "viem/chains";
+import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
 import { useRecoilState } from "recoil";
 import { buttonDisabledAtom } from "../store/atoms";
 import { baseBridgeContract, baseClient, polygonBridgeContract, polygonClient } from '../config'
@@ -48,7 +48,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
         try{
 
             if(primaryChain == "polygon" && secondaryChain == "base") {
-                if (chainId !== polygonZkEvm.id) {
+                if (chainId !== polygonZkEvmCardona.id) {
                     throw new Error ("Please switch your network to Polygon zkEVm Cardona");
                 }
 
