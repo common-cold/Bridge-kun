@@ -18,4 +18,8 @@ jobs:
                 key: ${{ secrets.PRIVATE_SSH_KEY }}
                 port: 22
                 script: |
-                    ls -al 
+                    cd Bridge-kun/
+                    git pull origin master
+                    npm install
+                    cd backend/
+                    pm2 start "npm run dev" --name Indexer
