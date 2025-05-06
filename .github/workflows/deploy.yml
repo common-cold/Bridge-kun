@@ -17,10 +17,11 @@ jobs:
                 username: ${{ secrets.EC2_USERNAME }}
                 key: ${{ secrets.PRIVATE_SSH_KEY }}
                 port: 22
-                shell: bash
                 script: |
                     cd Bridge-kun/
                     git pull origin master
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
                     npm install
                     cd backend/
                     pm2 start "npm run dev" --name Indexer
