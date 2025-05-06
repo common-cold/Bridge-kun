@@ -17,6 +17,7 @@ jobs:
                 username: ${{ secrets.EC2_USERNAME }}
                 key: ${{ secrets.PRIVATE_SSH_KEY }}
                 port: 22
+                shell: bash
                 script: |
                     cd Bridge-kun/
                     git pull origin master
