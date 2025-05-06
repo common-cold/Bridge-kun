@@ -10,7 +10,7 @@ jobs:
             - name: Checkout the code
               uses: actions/checkout@v2
 
-            - name: Execute remote SSH commands using password
+            - name: Execute remote SSH commands using private key
               uses: appleboy/ssh-action@v1
               with:
                 host: ${{ secrets.EC2_HOST }}
@@ -18,4 +18,4 @@ jobs:
                 key: ${{ secrets.PRIVATE_SSH_KEY }}
                 port: 22
                 script: |
-                    ls -al
+                    ls -al 
