@@ -1,39 +1,121 @@
-# <h1 align="center"> Forge Template </h1>
+# <h1 align="center"> Bridge-kun 🌉 </h1>
 
-**Template repository for getting started quickly with Foundry projects**
+**A One-Way Bridge for transferring tokens between Polygon and Base blockchains.** 🚀
 
-![Github Actions](https://github.com/foundry-rs/forge-template/workflows/CI/badge.svg)
+---
 
-## Getting Started
+### Key Components 🧩
 
-Click "Use this template" on [GitHub](https://github.com/foundry-rs/forge-template) to create a new repository with this repo as the initial state.
+1. **Backend** 🛠️: Contains the Indexer, handles blockchain interactions, event polling, and queue processing.  
+2. **Frontend** 💻: A React + TypeScript + Vite application for user interaction.  
+3. **Smart Contracts** 🔗: Solidity contracts for bridging tokens between Polygon and Base.  
 
-Or, if your repo already exists, run:
-```sh
-forge init
-forge build
-forge test
-```
+---
 
-## Writing your first test
+## Backend 🛠️
 
-All you need is to `import forge-std/Test.sol` and then inherit it from your test contract. Forge-std's Test contract comes with a pre-instatiated [cheatcodes environment](https://book.getfoundry.sh/cheatcodes/), the `vm`. It also has support for [ds-test](https://book.getfoundry.sh/reference/ds-test.html)-style logs and assertions. Finally, it supports Hardhat's [console.log](https://github.com/brockelmore/forge-std/blob/master/src/console.sol). The logging functionalities require `-vvvv`.
+The backend contains the Indexer and is responsible for interacting with the blockchain, processing events, and managing the bridging logic.
 
-```solidity
-pragma solidity 0.8.10;
+### Backend Setup ⚙️
 
-import "forge-std/Test.sol";
+1. Navigate to the `backend` directory:
+   ```sh
+   cd backend
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Create a `.env` file based on `.env.example`:
+   ```env
+   PRIVATE_KEY=""
+   POLYGON_BRIDGE_ADDRESS=""
+   BASE_BRIDGE_ADDRESS=""
+   NFSCOIN_ADDRESS=""
+   BNFSCOIN_ADDRESS=""
+   POLYGON_RPC_URL=""
+   BASE_RPC_URL=""
+   MINT_TOPIC="Mint(address,uint256)"
+   BURN_TOPIC="Burn(address,uint256)"
+   ```
+4. Start the backend:
+   ```sh
+   npm run dev
+   ```
 
-contract ContractTest is Test {
-    function testExample() public {
-        vm.roll(100);
-        console.log(1);
-        emit log("hi");
-        assertTrue(true);
-    }
-}
-```
+---
 
-## Development
+## Frontend 💻
 
-This project uses [Foundry](https://getfoundry.sh). See the [book](https://book.getfoundry.sh/getting-started/installation.html) for instructions on how to install and use Foundry.
+The frontend provides a user interface for interacting with the cross-chain bridge.
+
+### Frontend Setup ⚙️
+
+1. Navigate to the `frontend` directory:
+   ```sh
+   cd frontend
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Create a `.env` file based on `.env.example`:
+   ```env
+   VITE_PRIVATE_KEY=""
+   VITE_POLYGON_BRIDGE_ADDRESS=""
+   VITE_BASE_BRIDGE_ADDRESS=""
+   VITE_NFSCOIN_ADDRESS=""
+   VITE_BNFSCOIN_ADDRESS=""
+   VITE_POLYGON_RPC_URL=""
+   VITE_BASE_RPC_URL=""
+   VITE_MINT_TOPIC="Mint(address,uint256)"
+   VITE_BURN_TOPIC="Burn(address,uint256)"
+   ```
+4. Start the frontend:
+   ```sh
+   npm run dev
+   ```
+
+---
+
+## Smart Contracts 🔗
+
+The smart contracts implement the bridging logic and token standards.
+
+### Contracts 📜
+
+- **PolygonBridge.sol**: Handles bridging logic on the Polygon chain (This is the primary chain).  
+- **BaseBridge.sol**: Handles bridging logic on the Base chain.  
+- **NFSCoin.sol**: ERC-20 token implementation.  
+- **BNFSCoin.sol**: Another ERC-20 token implementation.  
+- **IBNFSCoin.sol**: Interface for the BNFSCoin contract.  
+
+### Deployment 🚀
+
+1. Compile and deploy `PolygonBridge.sol` & `NFSCoin.sol` contracts on the **Polygon zkEVM** network using your preferred tool (e.g., Hardhat, Remix).  
+2. Compile and deploy `BaseBridge.sol` & `BNFSCoin.sol` contracts on the **Base Sepolia** network using your preferred tool (e.g., Hardhat, Remix).  
+3. Update the `.env` files in both `backend` and `frontend` with the deployed contract addresses.  
+
+---
+
+## Tech Stack 🧰
+
+- **Frontend**: React, Recoil, ethers.js, wagmi  
+- **Backend**: Node.js, TypeScript, Bull, Redis, ethers.js  
+- **Smart Contracts**: Solidity, Foundry, OpenZeppelin Contracts  
+
+---
+
+## Future Enhancements 🚀✨
+
+1. Extend bridging functionality to support **Solana** blockchain networks. 🌐  
+2. Add support for **multiple tokens** to enable broader use cases. 🪙  
+3. Upgrade the current **one-way bridge** to a **multi-directional bridge** for seamless transfers in both directions. 🔄  
+
+---
+
+## License 📜
+
+This project is licensed under the [MIT License](LICENSE). 📝
+
+---
