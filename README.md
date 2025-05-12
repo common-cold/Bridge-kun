@@ -12,6 +12,34 @@
 
 ---
 
+## Usage 🧑‍💻
+
+1. This is a **one-way bridge**, so assets from **Polygon zkEVM Cardona TestNet** can be transferred to **Base Sepolia**.  
+2. It supports **NFSCoin** present on Polygon, which can be bridged to **BNFSCoin** on Base.
+3. **NFSCoin** and **BNFSCoin** both reside at `0x744c083Be5755351e3c9762AC131766cbFd83b4c` in their respsective chains.
+> **NFSCoin** stands for **Need For Speed Coin**, inspired by the popular racing game. 🏎️  
+
+### Steps to Use:
+
+1. **Switch your wallet** to **Polygon zkEVM Cardona Testnet**.  
+2. **Airdrop yourself NFSCoin** using the button at the top right of the interface (you will receive **10 NFSCoin**).  
+3. You can now **bridge any amount of NFSCoin** from **Polygon zkEVM Cardona Testnet** to **Base Sepolia**.  
+4. Similarly, you can bridge **BNFSCoin** **from Base Sepolia** back to **Polygon zkEVM**.  
+
+Enjoy seamless and secure token transfers! 🌉✨
+
+---
+
+## Demo 💻
+
+### Polygon to Base Transfer
+   https://github.com/user-attachments/assets/94a11547-706e-403b-8762-df30959a912b
+
+### Base to Polygon Transfer
+   https://github.com/user-attachments/assets/af4dbc38-9ff5-4457-b2ba-dc37c92b3b8a
+
+---
+
 ## Backend 🛠️
 
 The backend contains the Indexer and is responsible for interacting with the blockchain, processing events, and managing the bridging logic.
@@ -31,8 +59,8 @@ The backend contains the Indexer and is responsible for interacting with the blo
    PRIVATE_KEY=""
    POLYGON_BRIDGE_ADDRESS=""
    BASE_BRIDGE_ADDRESS=""
-   NFSCOIN_ADDRESS=""
-   BNFSCOIN_ADDRESS=""
+   NFSCOIN_ADDRESS="0x744c083Be5755351e3c9762AC131766cbFd83b4c"
+   BNFSCOIN_ADDRESS="0x744c083Be5755351e3c9762AC131766cbFd83b4c"
    POLYGON_RPC_URL=""
    BASE_RPC_URL=""
    MINT_TOPIC="Mint(address,uint256)"
@@ -64,8 +92,8 @@ The frontend provides a user interface for interacting with the cross-chain brid
    VITE_PRIVATE_KEY=""
    VITE_POLYGON_BRIDGE_ADDRESS=""
    VITE_BASE_BRIDGE_ADDRESS=""
-   VITE_NFSCOIN_ADDRESS=""
-   VITE_BNFSCOIN_ADDRESS=""
+   VITE_NFSCOIN_ADDRESS="0x744c083Be5755351e3c9762AC131766cbFd83b4c"
+   VITE_BNFSCOIN_ADDRESS="0x744c083Be5755351e3c9762AC131766cbFd83b4c"
    VITE_POLYGON_RPC_URL=""
    VITE_BASE_RPC_URL=""
    VITE_MINT_TOPIC="Mint(address,uint256)"
@@ -86,7 +114,7 @@ The smart contracts implement the bridging logic and token standards.
 
 - **PolygonBridge.sol**: Handles bridging logic on the Polygon chain (This is the primary chain).  
 - **BaseBridge.sol**: Handles bridging logic on the Base chain.  
-- **NFSCoin.sol**: ERC-20 token implementation.  
+- **NFSCoin.sol**: ERC-20 token implementation.
 - **BNFSCoin.sol**: Another ERC-20 token implementation.  
 - **IBNFSCoin.sol**: Interface for the BNFSCoin contract.  
 
