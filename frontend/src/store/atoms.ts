@@ -20,6 +20,16 @@ export const secondaryChainAtom = atom({
     }
 });
 
+export const primaryWalletAtom = atom({
+    key: "primaryWalletAtom",
+    default: ""
+});
+
+export const secondaryWalletAtom = atom({
+    key: "secondaryWalletAtom",
+    default: ""
+});
+
 export const tokenAmountAtom = atom({
     key: "tokenAmountAtom",
     default: "0"
