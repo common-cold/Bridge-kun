@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import baseIcon from "../assets/base.png";
+import solanaIcon from "../assets/solana.png";
 import polygonIcon from "../assets/polygon.png";
 
 export const primaryChainAtom = atom({
@@ -14,19 +14,19 @@ export const primaryChainAtom = atom({
 export const secondaryChainAtom = atom({
     key: "secondaryChainAtom",
     default:  {
-        value: 'base',
-        label: 'Base Sepolia',
-        icon: baseIcon
+        value: 'solana',
+        label: 'Solana Devnet',
+        icon: solanaIcon
     }
 });
 
-export const primaryWalletAtom = atom({
-    key: "primaryWalletAtom",
+export const primaryWalletAddressAtom = atom({
+    key: "primaryWalletAddressAtom",
     default: ""
 });
 
-export const secondaryWalletAtom = atom({
-    key: "secondaryWalletAtom",
+export const secondaryWalletAddressAtom = atom({
+    key: "secondaryWalletAddressAtom",
     default: ""
 });
 

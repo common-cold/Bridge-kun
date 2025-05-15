@@ -1,26 +1,51 @@
-import { Connector, CreateConnectorFn, useAccount, useConnect, useDisconnect } from "wagmi"
+import { useAccount, useConnect, useDisconnect } from "wagmi"
 import '../App.css';
 import "../index.css";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
+import { ChainOption, InputGroupType } from "./InputSections";
+import { SolanaAdapterWallets } from "./custom-solana-wallet-adapter/SolanaAdapterWallets";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useSetRecoilState } from "recoil";
+import { primaryWalletAddressAtom, secondaryWalletAddressAtom } from "../store/atoms";
 
 
 interface ListComponentProps {
-    connector: Connector<CreateConnectorFn>;
-    index: number;
-  };
+    handleOnClick: () => void,
+    icon: string, 
+    index: number
+};
+
+interface AddressDivProps {
+    handleOnClick: () => void,
+    icon: string,
+    walletAddress: string
+}
+
+interface WagmiWalletProps {
+    dropDownRef: RefObject<HTMLDivElement | null>,
+    type: InputGroupType
+}
 
 interface ConnectButtonProps {
     showWallets: boolean,
     handleOnClick: () => void,
-    buttonLabel: string
+    buttonLabel: string,
 }
 
-type ConnectWalletComponentProps = Pick<ConnectButtonProps, 'buttonLabel'>;
+interface ConnectWalletComponentProps {
+    buttonLabel: string,
+    currentChain: ChainOption,
+    type: InputGroupType
+}
 
-  export function ConnectWallet({buttonLabel} : ConnectWalletComponentProps) {
-    const {address, connector} = useAccount();
-    const {connectors} = useConnect(); 
-    const {disconnect} = useDisconnect();
+export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletComponentProps) {
+    //wagmi hooks
+    const {address: wagmiAddress, connector} = useAccount();
+    const {disconnect: disconnectWagmiWallet} = useDisconnect();
+    
+    //solana wallet adapter hooks
+    const {publicKey: solanaAdapterAddress, wallet, disconnect: disconnectSolanaAdapterWallet} = useWallet();
+    
     const [showWallets, setShowWallets] = useState(false);
     const dropDownRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,7 +55,7 @@ type ConnectWalletComponentProps = Pick<ConnectButtonProps, 'buttonLabel'>;
             setShowWallets(false);
         }
     }
-    console.log("Show Wallets:", showWallets);
+    // console.log("Show Wallets:", showWallets);
 
     useEffect(() => {
         document.addEventListener('mousedown', handleMouseClick)
@@ -39,61 +64,58 @@ type ConnectWalletComponentProps = Pick<ConnectButtonProps, 'buttonLabel'>;
         }
     }, []);
 
-    if (address) {
-        return <div
-        className="spacedDiv black"
-        style={{display: "flex", justifyContent: "space-between", alignItems: "baseline", cursor
-            : "pointer", width: "124px"}}
+    console.log("SOLANA WALLET: " + solanaAdapterAddress?.toBase58());
 
-        onClick={()=> {
-            disconnect({connector});
-            setShowWallets(false);
-        }}>
-            <img
-                src={connector?.icon}
-                style={{width: "18px", height: "18px", marginRight: "7px"}}
+    if (currentChain.value === "solana") {
+        if (solanaAdapterAddress) {
+            return <AddressDiv
+                handleOnClick={()=> {
+                    disconnectSolanaAdapterWallet();
+                    setShowWallets(false);
+                }}
+                icon={wallet?.adapter.icon!}
+                walletAddress={solanaAdapterAddress?.toBase58()!}
             />
-            <div style={{fontFamily: "Satoshi-Bold", overflow: "hidden"}}>
-                {address}
-            </div>
+        }
+        return <div style={{display: "flex", flexDirection: "column", position: "relative"}}>
+            <ConnectButton 
+                showWallets={showWallets} 
+                handleOnClick={() => setShowWallets(prev => !prev)} 
+                buttonLabel={buttonLabel}
+            />
+            {
+                showWallets &&
+                <SolanaAdapterWallets type={type}/>
+            }
+        </div>
+
+    } else  {
+        if (wagmiAddress) {
+            return <AddressDiv 
+                handleOnClick={()=> {
+                    disconnectWagmiWallet({connector});
+                    setShowWallets(false);
+                }}
+                icon={connector?.icon!}
+                walletAddress={wagmiAddress}
+            />
+        }
+        return <div style={{display: "flex", flexDirection: "column", position: "relative"}}>
+                <ConnectButton 
+                    showWallets={showWallets} 
+                    handleOnClick={() => setShowWallets(prev => !prev)} 
+                    buttonLabel={buttonLabel}
+                />
+                {
+                    showWallets &&
+                    <WagmiWallets dropDownRef={dropDownRef} type={type}/>
+                }
         </div>
     }
-    
-    
-    return <div style={{display: "flex", flexDirection: "column", position: "relative"}}>
-        <ConnectButton showWallets={showWallets} handleOnClick={() => setShowWallets(prev => !prev)} buttonLabel={buttonLabel}/>
-        {
-            showWallets && (
-                <div 
-                    ref={dropDownRef}
-                    style={{
-                        overflow: "hidden",
-                        position: "absolute",
-                        transition: "all 0.3s ease",
-                        width: '120px',
-                        top: '110%',
-                        right: -18,
-                        zIndex: 999,
-                        marginInline: "20px",
-                        background: '#fff',
-                        border: '1px solid #D3D3D3',
-                        borderRadius: '10px',
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                    }}>
-                    {connectors.map((connector, index) => {
-                        console.log(connector);
-                        if (connector.id !== "injected") {
-                            return <ListComponent connector={connector} index={index} />
-                        }
-                    })}
-                </div>
-            )
-        }
-    </div>
 }
 
 
-function ConnectButton({showWallets, handleOnClick, buttonLabel} : ConnectButtonProps) {
+export function ConnectButton({showWallets, handleOnClick, buttonLabel} : ConnectButtonProps) {
     return <div className="walletButton" 
         style={{display: "flex", justifyContent: "space-between", fontFamily: "Satoshi-Black", paddingInline: "15px", height: "27px"}} 
             onClick={handleOnClick}>
@@ -115,17 +137,76 @@ function ConnectButton({showWallets, handleOnClick, buttonLabel} : ConnectButton
     </div>
 }
 
-function ListComponent({connector, index}: ListComponentProps) {
-    const {connect} = useConnect(); 
+
+export function AddressDiv({handleOnClick, icon, walletAddress}: AddressDivProps) {
+    return <div className="spacedDiv black"
+                style={{display: "flex", justifyContent: "space-between", alignItems: "baseline", cursor
+                    : "pointer", width: "124px"}}
+
+                onClick={handleOnClick}>
+                <img
+                    src={icon}
+                    style={{width: "18px", height: "18px", marginRight: "7px"}}
+                />
+                <div style={{fontFamily: "Satoshi-Bold", overflow: "hidden"}}>
+                    {walletAddress}
+                </div>
+            </div>
+}
+
+
+function WagmiWallets({dropDownRef, type} : WagmiWalletProps) {
+    const {connectors, connect, connectAsync} = useConnect();
+    const {address: wagmiAddress} = useAccount();
+    const setPrimaryWalletAddress = useSetRecoilState(primaryWalletAddressAtom);
+    const setSecondaryWalletAddress = useSetRecoilState(secondaryWalletAddressAtom);
+    
+    return <div 
+        ref={dropDownRef}
+        style={{
+            overflow: "hidden",
+            position: "absolute",
+            transition: "all 0.3s ease",
+            width: '120px',
+            top: '110%',
+            right: -18,
+            zIndex: 999,
+            marginInline: "20px",
+            background: '#fff',
+            border: '1px solid #D3D3D3',
+            borderRadius: '10px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+        }}>
+        {connectors.map((connector, index) => {
+            if (connector.id !== "injected") {
+                return <ListComponent 
+                    handleOnClick={async ()=> {
+                        const result  = await connectAsync({connector});
+                        const walletAddress = result.accounts[0];
+                        if (type === InputGroupType.Primary) {
+                            setPrimaryWalletAddress(walletAddress)
+                        } else if (type === InputGroupType.Secondary) {
+                            setSecondaryWalletAddress(walletAddress)
+                        }
+                    }}
+                    icon={connector.icon!} 
+                    index={index} 
+                />
+            }
+        })}
+    </div>
+}
+
+
+export function ListComponent({handleOnClick, icon, index}: ListComponentProps) {
+    
     const [hovered, setHovered] = useState<number | null>(null);
 
     return <div 
         key={index}
         onMouseEnter={()=> setHovered(index)}
         onMouseLeave={()=> setHovered(null)}
-        onClick={()=> {
-            connect({connector});
-        }}
+        onClick={handleOnClick}
         style={{
             display: "flex",
             justifyContent: "flex-start",
@@ -138,7 +219,7 @@ function ListComponent({connector, index}: ListComponentProps) {
             }}>
         <img
             className="iconStyle"
-            src={connector.icon}
+            src={icon}
         />
         Connect
     </div>

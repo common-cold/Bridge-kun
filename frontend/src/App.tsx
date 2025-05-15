@@ -29,7 +29,6 @@ function App() {
                 justifyContent: 'space-between',
                 padding: 20
               }}>
-              <WalletMultiButton />
               <WalletDisconnectButton />
             </div>
               <div style={{width: "100%", height: "100%", justifyContent: "center", alignItems: "center", backgroundColor: "#fefbff",

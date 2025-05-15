@@ -48,7 +48,6 @@ export function DropDownComponent({chainOptions, defaultChain, onChange}: DropDo
                 style={{
                     overflow: "hidden",
                     transition: "all 0.3s ease",
-                    maxHeight: isExpanded ? "120px" : "0px",
                     position: 'absolute',
                     width: '100%',
                     top: '100%',
