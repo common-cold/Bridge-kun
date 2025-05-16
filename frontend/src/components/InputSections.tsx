@@ -1,5 +1,5 @@
-import { useRecoilState, useRecoilValue, useResetRecoilState } from "recoil"
-import { primaryChainAtom, primaryWalletAddressAtom, primaryWalletAtom, secondaryChainAtom, secondaryWalletAddressAtom, secondaryWalletAtom, tokenAmountAtom } from "../store/atoms"
+import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil"
+import { primaryChainAtom, primaryWalletAddressAtom, secondaryChainAtom, secondaryWalletAddressAtom, tokenAmountAtom } from "../store/atoms"
 import { memo } from "react"
 import { useAccount } from "wagmi"
 import { Transfer } from "./Transfer"
@@ -9,6 +9,7 @@ import polygonIcon from "../assets/polygon.png";
 import solanaIcon from "../assets/solana.png";
 import { Address } from "viem"
 import { ConnectWallet } from "./ConnectWallet";
+import { useAnchorWallet } from "@solana/wallet-adapter-react"
 
 
 export enum InputGroupType {
@@ -69,11 +70,13 @@ export function InputSections() {
     const [secondaryChain, setSecondaryChain] = useRecoilState(secondaryChainAtom);
     const primaryAddress = useRecoilValue(primaryWalletAddressAtom);
     const secondaryAddress = useRecoilValue(secondaryWalletAddressAtom);
-    const [tokenAmount, setTokenAmount] = useRecoilState(tokenAmountAtom);
+    const setTokenAmount = useSetRecoilState(tokenAmountAtom);
     const {address} = useAccount();
+    const publicKey = useAnchorWallet();
 
     console.log("primaryAddress = " + primaryAddress);
     console.log("secondaryAddress = " + secondaryAddress);
+    // console.log("ANCHORWALLET = " + JSON.stringify(publicKey));
 
 
 
@@ -83,7 +86,7 @@ export function InputSections() {
         <ArrowSymbol/>
         <InputGroup labelName="To Network" defaultChain={secondaryChain} onChange={setSecondaryChain} buttonLabel="To Wallet" currentChain={secondaryChain} type={InputGroupType.Secondary}/>
         <AmountInput onChange={setTokenAmount}/>
-        <Transfer primaryChain={primaryChain.value} secondaryChain={secondaryChain.value} amount={tokenAmount} walletAddress={address!}/>
+        <Transfer/>
     </div>
 }
 

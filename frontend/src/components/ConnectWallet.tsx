@@ -5,8 +5,8 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import { ChainOption, InputGroupType } from "./InputSections";
 import { SolanaAdapterWallets } from "./custom-solana-wallet-adapter/SolanaAdapterWallets";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useSetRecoilState } from "recoil";
-import { primaryWalletAddressAtom, secondaryWalletAddressAtom } from "../store/atoms";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { primaryChainAtom, primaryWalletAddressAtom, secondaryChainAtom, secondaryWalletAddressAtom } from "../store/atoms";
 
 
 interface ListComponentProps {
@@ -47,6 +47,10 @@ export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletC
     const {publicKey: solanaAdapterAddress, wallet, disconnect: disconnectSolanaAdapterWallet} = useWallet();
     
     const [showWallets, setShowWallets] = useState(false);
+    const primaryChain = useRecoilValue(primaryChainAtom);
+    const secondaryChain = useRecoilValue(secondaryChainAtom);
+    const [primaryAddress, setPrimaryAddress] = useRecoilState(primaryWalletAddressAtom);
+    const [secondaryAddress, setSecondaryAddress] = useRecoilState(secondaryWalletAddressAtom);
     const dropDownRef = useRef<HTMLDivElement | null>(null);
 
     function handleMouseClick(event: MouseEvent) {
@@ -64,12 +68,37 @@ export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletC
         }
     }, []);
 
-    console.log("SOLANA WALLET: " + solanaAdapterAddress?.toBase58());
+    // useEffect(() => {
+    //     if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
+    //         setPrimaryAddress(secondaryAddress);
+    //     } else {
+    //         setPrimaryAddress(null);
+    //     }
+    // }, [primaryChain]);
 
+    // useEffect(() => {
+    //     if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
+    //         setSecondaryAddress(primaryAddress);
+    //     } else {
+    //         setSecondaryAddress(null);
+    //     }
+    // }, [secondaryChain]);
+
+    // console.log("SOLANA WALLET: " + solanaAdapterAddress?.toBase58());
+
+    function clearAddressState() {
+        if (type === InputGroupType.Primary) {
+            setPrimaryAddress(null);
+        } else {
+            setSecondaryAddress(null);
+        }
+    }
+    
     if (currentChain.value === "solana") {
         if (solanaAdapterAddress) {
             return <AddressDiv
                 handleOnClick={()=> {
+                    clearAddressState();
                     disconnectSolanaAdapterWallet();
                     setShowWallets(false);
                 }}
@@ -93,6 +122,14 @@ export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletC
         if (wagmiAddress) {
             return <AddressDiv 
                 handleOnClick={()=> {
+                    // if chains are either polygon or base, 
+                    // they share same address, thus clear both of them
+                    if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
+                        setPrimaryAddress(null);
+                        setSecondaryAddress(null);
+                    } else {
+                        clearAddressState();
+                    }
                     disconnectWagmiWallet({connector});
                     setShowWallets(false);
                 }}
@@ -156,10 +193,11 @@ export function AddressDiv({handleOnClick, icon, walletAddress}: AddressDivProps
 
 
 function WagmiWallets({dropDownRef, type} : WagmiWalletProps) {
-    const {connectors, connect, connectAsync} = useConnect();
-    const {address: wagmiAddress} = useAccount();
+    const {connectors, connectAsync} = useConnect();
     const setPrimaryWalletAddress = useSetRecoilState(primaryWalletAddressAtom);
     const setSecondaryWalletAddress = useSetRecoilState(secondaryWalletAddressAtom);
+    const primaryChain = useRecoilValue(primaryChainAtom);
+    const secondaryChain = useRecoilValue(secondaryChainAtom);
     
     return <div 
         ref={dropDownRef}
@@ -180,12 +218,21 @@ function WagmiWallets({dropDownRef, type} : WagmiWalletProps) {
         {connectors.map((connector, index) => {
             if (connector.id !== "injected") {
                 return <ListComponent 
+                    key={index}
                     handleOnClick={async ()=> {
                         const result  = await connectAsync({connector});
                         const walletAddress = result.accounts[0];
-                        if (type === InputGroupType.Primary) {
+
+                        // if chians are either polygon or base, 
+                        // set primary and secondary wallet adddress as same address
+                        if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
+                            setPrimaryWalletAddress(walletAddress);
+                            setSecondaryWalletAddress(walletAddress);
+                        } 
+                        else if (type === InputGroupType.Primary) {
                             setPrimaryWalletAddress(walletAddress)
-                        } else if (type === InputGroupType.Secondary) {
+                        } 
+                        else if (type === InputGroupType.Secondary) {
                             setSecondaryWalletAddress(walletAddress)
                         }
                     }}
@@ -203,7 +250,6 @@ export function ListComponent({handleOnClick, icon, index}: ListComponentProps) 
     const [hovered, setHovered] = useState<number | null>(null);
 
     return <div 
-        key={index}
         onMouseEnter={()=> setHovered(index)}
         onMouseLeave={()=> setHovered(null)}
         onClick={handleOnClick}

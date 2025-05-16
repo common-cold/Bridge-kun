@@ -31,6 +31,7 @@ export function  SolanaAdapterWallets({type} : SolanaAdapterWalletsprops) {
         }}>
         {wallets.map((wallet, index) => {
             return <ListComponent 
+                key={index}
                 handleOnClick={async () => {
                     select(wallet.adapter.name)
                     await wallet.adapter.connect();

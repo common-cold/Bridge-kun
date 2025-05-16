@@ -18,19 +18,12 @@ const client = new QueryClient();
 
 function App() {
 
-  return <ConnectionProvider endpoint='https://solana-devnet.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG'>
+  return <ConnectionProvider endpoint='https://api.devnet.solana.com'>
     <WalletProvider wallets={[new PhantomWalletAdapter]} autoConnect>
       <WalletModalProvider>
         <WagmiProvider config={config}>
           <QueryClientProvider client={client}>
             <RecoilRoot>
-              <div style={{  
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: 20
-              }}>
-              <WalletDisconnectButton />
-            </div>
               <div style={{width: "100%", height: "100%", justifyContent: "center", alignItems: "center", backgroundColor: "#fefbff",
                   background: 'radial-gradient(circle, #7EC8E3 0%, #A1C6E7 60%, #ffffff 100%)',
                   // background: 'radial-gradient(circle, #89f7fe 0%, #66a6ff 100%)'

@@ -15,7 +15,7 @@ describe("anchor", () => {
 
   const payerWallet = Keypair.fromSecretKey(bs58.decode("4z51TiKiNBqHN6ik2poMKZfTKfGyQkjNU6z7AtBjUNNvfCkhiHNWr87jF8xXtnHHYU3qVnV1a8qQxtCVQAC8nt1P"));
   const mint = new anchor.web3.PublicKey("9tRbLwrMqR4RaWLbLdRJGW8fKsd3ft7pUwp2nTHtJcdZ");
-  const tokenDecimals = new BN(10).pow(new BN(6));
+  const tokenDecimals = new BN(10).pow(new BN(9));
 
   it("Is initialized!", async () => {
     // Add your test here.
