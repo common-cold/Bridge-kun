@@ -4,14 +4,13 @@ use spl_token_metadata_interface::state::TokenMetadata;
 use spl_type_length_value::variable_len_pack::VariableLenPack;
 use anchor_lang::{solana_program::rent::{DEFAULT_EXEMPTION_THRESHOLD, DEFAULT_LAMPORTS_PER_BYTE_YEAR}, system_program::{transfer, Transfer}};
 use anchor_spl::token_interface::{token_metadata_initialize, TokenMetadataInitialize, MintTo, mint_to};
-
+use anchor_spl::token_2022::{burn, Burn};
 
 
 declare_id!("G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht");
 
 #[program]
 pub mod bridge {
-
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -23,6 +22,7 @@ pub mod bridge {
     pub struct Initialize {}
 
 
+    //should be onlly called once for creating the mint of bridged token mint
     pub fn create_token_mint(ctx: Context<CreateTokenMint>) -> Result<()> {
         // let TokenMetadataParams {name, symbol} = args;
         let name = String::from("BNFSCOIN");
@@ -85,6 +85,8 @@ pub mod bridge {
     }
 
     pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
+        require!(ctx.accounts.user_balance_account.balance >= amount, CustomError::InSufficientBalance);
+
         let cpi_context = CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
             MintTo {
@@ -94,6 +96,28 @@ pub mod bridge {
             }
         );
         mint_to(cpi_context, amount)?;
+        ctx.accounts.user_balance_account.balance -= amount;
+        Ok(())
+    }
+
+    pub fn burn_token(ctx: Context<BurnToken>, polygon_address: String, amount: u64) -> Result<()> {
+        require!(ctx.accounts.user_balance_account.balance >= amount, CustomError::OverBurning);
+        
+        let cpi_context = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            Burn {
+                mint: ctx.accounts.mint_account.to_account_info(),
+                from: ctx.accounts.associated_token_account.to_account_info(),
+                authority: ctx.accounts.signer.to_account_info()
+            }
+        );
+        burn(cpi_context, amount)?;
+        emit!(CustomEvent {
+            event_type: String::from("Burn"),
+            source_address: ctx.accounts.signer.key(),
+            polygon_address: polygon_address,
+            amount: amount
+        });
         Ok(())
     }
  
@@ -179,6 +203,28 @@ pub struct MintToken<'info> {
     #[account(mut)]
     pub associated_token_account: InterfaceAccount<'info, TokenAccount>,
 
+    #[account(mut)]
+    pub user_balance_account: Account<'info, UserBalance>,
+
+    pub token_program: Program<'info, Token2022>
+}
+
+
+#[derive(Accounts)]
+pub struct BurnToken<'info> {
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    #[account(mut)]
+    pub mint_account: InterfaceAccount<'info, Mint>,
+
+    #[account(mut)]
+    pub associated_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub user_balance_account: Account<'info, UserBalance>,
+
     pub token_program: Program<'info, Token2022>
 }
 
@@ -187,6 +233,26 @@ pub struct MintToken<'info> {
 #[derive(InitSpace)]
 pub struct UserBalance {
     pub balance: u64
+}
+
+
+#[event]
+pub struct CustomEvent {
+    pub event_type: String,
+    pub source_address: Pubkey,
+    pub polygon_address: String,
+    pub amount: u64
+}
+
+
+#[error_code]
+pub enum CustomError {
+    
+    #[msg("You don't have enough tokens locked on Polygon Bridge")]
+    InSufficientBalance,
+
+    #[msg("You don't have enough tokens to be burned")]
+    OverBurning
 }
 
 

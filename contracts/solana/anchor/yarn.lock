@@ -226,6 +226,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/dotenv@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.npmjs.org/@types/dotenv/-/dotenv-6.1.1.tgz"
+  integrity sha512-ftQl3DtBvqHl9L16tpqqzA4YzCSXZfi7g8cQceTz5rOlYtk/IZbFjAv3mLOQlNIgOaylCQWQoBdDQHPgEBJPHg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/json5@^0.0.29":
   version "0.0.29"
   resolved "https://registry.npmjs.org/@types/json5/-/json5-0.0.29.tgz"
@@ -373,6 +380,11 @@ borsh@^0.7.0:
     bn.js "^5.2.0"
     bs58 "^4.0.0"
     text-encoding-utf-8 "^1.0.2"
+
+borsh@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/borsh/-/borsh-2.0.0.tgz"
+  integrity sha512-kc9+BgR3zz9+cjbwM8ODoUB4fs3X3I5A/HtX7LZKxCLaMrEeDFoBpnhZY//DTS1VZBSs6S5v46RZRbZjRFspEg==
 
 brace-expansion@^1.1.7:
   version "1.1.11"
@@ -560,6 +572,11 @@ diff@5.0.0:
   version "5.0.0"
   resolved "https://registry.npmjs.org/diff/-/diff-5.0.0.tgz"
   integrity sha512-/VTCrvm5Z0JGty/BWHljh+BAiw3IK+2j87NGMu8Nwc/f48WoDAC395uomO9ZD117ZOBaHmkX1oyLvkVM/aIT3w==
+
+dotenv@^16.5.0:
+  version "16.5.0"
+  resolved "https://registry.npmjs.org/dotenv/-/dotenv-16.5.0.tgz"
+  integrity sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==
 
 emoji-regex@^8.0.0:
   version "8.0.0"

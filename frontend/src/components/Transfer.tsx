@@ -39,7 +39,7 @@ export function Transfer() {
     const bridgeContract: Program<Idl> = getProgram(wallet);
     const {lockTokenOnPolygon, withdrawFromPolygon, pollPolygonBridgeForBalance} = usePolygonFunctions(); 
     const {withdrawFromBase, burnTokenOnBase, pollBaseBridgeForBalance} = useBaseFunctions();
-    const {createAta, mintToken, rescaleToken18To9} = useSolanaFunctions();
+    const {createAta, mintToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes} = useSolanaFunctions();
     async function transfer() {
         try{
             if(primaryChain.value == "polygon" && secondaryChain.value == "base") {
@@ -51,7 +51,7 @@ export function Transfer() {
                 setButtonDisabled(true);
                 
                 //lock token on Polygon
-                await lockTokenOnPolygon(tokenAmount);
+                await lockTokenOnPolygon(tokenAmount, null);
 
                 //Check if the event relayed to base bridge via nodejs indexer by polling the user balance 
                 await pollBaseBridgeForBalance(tokenAmount);
@@ -102,14 +102,18 @@ export function Transfer() {
                     {duration: 10000}
                 );
             } else if (primaryChain.value === "polygon" && secondaryChain.value === "solana") {
-                // const tokenAmount = ethers.parseUnits(amount, 18);
-                // setButtonDisabled(true);
-                
-                // //lock token on Polygon
-                // await lockTokenOnPolygon(tokenAmount);
-
-                let rescaledTokenAmount = new BN(rescaleToken18To9(amount).toString());
+                const tokenAmount = ethers.parseUnits(amount, 18);
                 setButtonDisabled(true);
+                
+                const encodedSolanaWalletAddr = convertBase58Tou32Bytes(wallet!.publicKey.toString());
+                //lock token on Polygons
+                await lockTokenOnPolygon(tokenAmount, encodedSolanaWalletAddr);
+
+                //rescale token from 18 decimal in Polygon to 9 decimal in Solana
+                let rescaledTokenAmount = new BN(rescaleToken18To9(amount).toString());
+
+                //Check if the event relayed to solana bridge via nodejs indexer by polling the user balance
+                await pollSolanaBridgeForBalance(wallet!.publicKey, rescaledTokenAmount);
                 const ata = getAssociatedTokenAddressSync(
                     new PublicKey(import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS),
                     wallet?.publicKey!,
@@ -124,7 +128,22 @@ export function Transfer() {
                     await createAta(ata);
                 }
                 //minting equivalent amount to ATA
-                await mintToken(ata, rescaledTokenAmount);
+                const tx = await mintToken(wallet!.publicKey, ata, rescaledTokenAmount);
+
+                toast.success(
+                    <div className="toastMessage">
+                      Bridge Successful!<br />
+                      <a
+                        href={`https://explorer.solana.com/tx/${tx}?cluster=devnet`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#3674e5', textDecoration: 'underline' }}
+                      >
+                        View on Solana Devnet Explorer
+                      </a>
+                    </div>,
+                    {duration: 10000}
+                );
             }
             
             setButtonDisabled(false);

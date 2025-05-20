@@ -1,10 +1,15 @@
 import { Log , JsonRpcProvider, ethers, id, Wallet, Contract, Block} from "ethers";
 import { QueueData } from "./typesData";
-import { matchTopic, toNormalAddress } from "./utils/utils";
+import { matchTopic, rescaleToken18To9, serializeData, toNormalAddress, toSolanaAddress } from "./utils/utils";
 import {baseAbi, polygonAbi} from "./contract/abi";
 import Bull from "bull";
 import dotenv from "dotenv";
-import { validateBaseChain } from "web3/lib/commonjs/eth.exports";
+import { Connection, Context, Keypair, Logs, PublicKey, sendAndConfirmRawTransaction, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { Bridge } from "./contract/solana/types/bridge";
+import idl from "./contract/solana/idl/bridge.json";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 
 enum Chain {
@@ -23,6 +28,10 @@ const polygonBridgeAddress = process.env.POLYGON_BRIDGE_ADDRESS;
 const baseBridgeAddress = process.env.BASE_BRIDGE_ADDRESS;
 const MINT_TOPIC = process.env.MINT_TOPIC;
 const BURN_TOPIC = process.env.BURN_TOPIC;
+const MINT_TO_SOLANA_TOPIC = process.env.MINT_TO_SOLANA_TOPIC;
+const SOLANA_BRIDGE_ADDRESS = new PublicKey(process.env.SOLANA_BRIDGE_ADDRESS!);
+const BNFSCOIN_SOL_ADDRESS = new PublicKey(process.env.BNFSCOIN_SOL_ADDRESS!);
+const MINT_AUTHORITY_PRIVATE_KEY = process.env.MINT_AUTHORITY_PRIVATE_KEY;
 
 
 const signerPolygon = new Wallet(PRIVATE_KEY!, polygonProvider);
@@ -30,6 +39,15 @@ const signerBase = new Wallet(PRIVATE_KEY!, baseProvider);
 
 const polygonBridgeContract = new Contract(polygonBridgeAddress!, polygonAbi, signerPolygon);
 const baseBridgeContract = new Contract(baseBridgeAddress!, baseAbi, signerBase);
+
+const connection = new Connection("https://api.devnet.solana.com");
+const signerSolana = Keypair.fromSecretKey(bs58.decode(MINT_AUTHORITY_PRIVATE_KEY!));
+
+const mintToSolanaInterface = new ethers.Interface([
+    "event MintToSolana(address indexed sender, bytes32 solanaAddress, uint256 amount)"
+]);
+
+const BURN_TOPIC_SOLANA = "BURN_TOPIC_SOLANA"
 
 
 const redisConfig = {
@@ -41,6 +59,8 @@ const redisConfig = {
 }
 const logQueue = new Bull("logQueue", redisConfig);
 console.log(logQueue);
+
+
 
 async function launchIndexer(chain: Chain) {
     if(chain === Chain.Polygon) {
@@ -78,6 +98,7 @@ async function launchIndexer(chain: Chain) {
     
 }
 
+
 async function pollPolygon(blockNumber: number) {
     try{
         console.log(`POLYGON BLOCK : ${blockNumber}`);
@@ -86,23 +107,41 @@ async function pollPolygon(blockNumber: number) {
             fromBlock: blockNumber,
             toBlock: blockNumber,
             topics: [
-                id(MINT_TOPIC!),
+                [
+                    id(MINT_TOPIC!),
+                    id(MINT_TO_SOLANA_TOPIC!)                
+                ]
             ]
         });
 
         console.log(logs);
 
         logs.forEach((log:Log) => {
-            const logData: QueueData = {
-                topic: log.topics[0],
-                sender: toNormalAddress(log.topics[1]),
-                amount: log.data
+            let logData: QueueData;
+            if (matchTopic(MINT_TOPIC!, log.topics[0])) {
+                logData = {
+                    topic: MINT_TOPIC!,
+                    sender: toNormalAddress(log.topics[1]),
+                    amount: log.data
+                }
+            } else if (matchTopic(MINT_TO_SOLANA_TOPIC!, log.topics[0])) {
+                const decodedEvent = mintToSolanaInterface.decodeEventLog("MintToSolana", log.data, log.topics);
+                const encodedAddress = decodedEvent[1];
+                const tokenAmount = decodedEvent[2];
+                logData = {
+                    topic: MINT_TO_SOLANA_TOPIC!,
+                    receiver: toSolanaAddress(encodedAddress),
+                    amount: rescaleToken18To9(tokenAmount)
+                }
+                console.log(JSON.stringify(logData));
+            } else {
+                return;
             }
-
             logQueue.add(logData);
         });
     } catch(error) {
         console.error(`Error in fetching POLYGON ${blockNumber}...retrying`);
+        console.log(error);
         await new Promise(r => setTimeout(r, 3000));
         pollPolygon(blockNumber);
     }
@@ -125,7 +164,7 @@ async function pollBase(blockNumber: number) {
 
         logs.forEach((log:Log) => {
             const logData: QueueData = {
-                topic: log.topics[0],
+                topic: BURN_TOPIC!,
                 sender: toNormalAddress(log.topics[1]),
                 amount: log.data
             }
@@ -145,21 +184,77 @@ logQueue.process(async (job)=> {
 
     console.log(`Job Data: ${queueData}`)
     
-    //Deposited on Polygon
-    if (matchTopic(MINT_TOPIC!, queueData.topic)) {
-        console.log("came in polygon consumer");
-        const txn = await baseBridgeContract.depositedOnOppositeChain(queueData.sender, queueData.amount);
-        console.log(txn);
+    try {
+        //Deposited on Polygon for Solana
+        if (queueData.topic === MINT_TO_SOLANA_TOPIC) {
+            console.log("came in solana consumer");
+            const ix = createDepositedOnOppChainTx(queueData);
+            console.log("IX: " + ix);
+            const tx = new Transaction().add(ix);
+            const blockhash = await connection.getLatestBlockhash();
+            tx.recentBlockhash = blockhash.blockhash;
+            tx.feePayer = signerSolana.publicKey;
+            const signature = await connection.sendTransaction(tx, [signerSolana]);
+            console.log("Signature: " + signature);
 
-    //Burned on Base
-    } else if (matchTopic(BURN_TOPIC!, queueData.topic)) {
-        console.log("came in base consumer");
-        const txn =  await polygonBridgeContract.burnedOnOppositeChain(queueData.sender, queueData.amount);
-        console.log(txn);
+        //Deposited on Polygon for base
+        } else if (queueData.topic === MINT_TOPIC) {
+            console.log("came in polygon consumer");
+            const txn = await baseBridgeContract.depositedOnOppositeChain(queueData.sender, queueData.amount);
+            console.log(txn);
+
+        //Burned on Base
+        } else if (queueData.topic === BURN_TOPIC) {
+            console.log("came in base consumer");
+            const txn =  await polygonBridgeContract.burnedOnOppositeChain(queueData.sender, queueData.amount);
+            console.log(txn);
+        }
+
+        return {success: true}
+    } catch (e) {
+        console.log(e);
     }
-
-    return {success: true}
+    
+    
 });
+
+
+function createDepositedOnOppChainTx(queueData: QueueData) {
+    const tokenAmount = BigInt(queueData.amount);
+    const receiverAddr = new PublicKey(queueData.receiver!);
+    const [userBalancePda, bump] = PublicKey.findProgramAddressSync(
+        [Buffer.from("balance"), receiverAddr.toBuffer()],
+        SOLANA_BRIDGE_ADDRESS
+    );
+    console.log("PDA: " + userBalancePda);
+    const ix = new TransactionInstruction({
+        keys: [
+            {pubkey: signerSolana.publicKey, isSigner: true, isWritable: true},
+            {pubkey: receiverAddr, isSigner: false,isWritable: false},
+            {pubkey: userBalancePda, isSigner: false,isWritable: true},
+            {pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false}
+        ],
+        programId: SOLANA_BRIDGE_ADDRESS,
+        data: serializeData(tokenAmount)
+    });
+    return ix;
+}
 
 launchIndexer(Chain.Polygon);
 launchIndexer(Chain.Base);
+// connection.onLogs(
+//     SOLANA_BRIDGE_ADDRESS,
+//     (logs: Logs, context: Context) => {
+//         const programLogs = logs.logs;
+//         let isBurnTopic = programLogs.includes("Program log: Instruction: BurnToken");
+//         if (isBurnTopic) {
+//             let data = 
+//             let serializedEventData = 
+//             let logData: QueueData = {
+//                 topic: BURN_TOPIC_SOLANA,
+//                 receiver: ,
+//                 amount: 
+//             }
+//         }
+//     }
+// )

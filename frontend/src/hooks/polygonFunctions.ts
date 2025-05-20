@@ -4,6 +4,8 @@ import { polygonZkEvmCardona } from "viem/chains";
 import { polygonBridgeContract, polygonClient } from "../config";
 import { QueryObserverResult } from "@tanstack/react-query";
 import { ReadContractErrorType } from "wagmi/actions";
+import { getBridgehubContractAddress } from "viem/zksync";
+import { estimateContractGas } from "viem/actions";
 
 
 export function usePolygonFunctions() {
@@ -20,7 +22,7 @@ export function usePolygonFunctions() {
     });
 
     
-    const lockTokenOnPolygon = async (tokenAmount: bigint) => {
+    const lockTokenOnPolygon = async (tokenAmount: bigint, solanaAddress: string | null) => {
         // Approve tokens to bridge
         const tx = await writeContractAsync({
             abi: nfsCoinAbi,
@@ -39,16 +41,39 @@ export function usePolygonFunctions() {
         }
         console.log(JSON.stringify(tx));
 
+        let tx2;
+        if (!solanaAddress) {
 
-        //Call deposit on polygon bridge
-        const tx2 = await writeContractAsync({
-            abi: polygonAbi,
-            address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
-            functionName: "deposit",
-            args: [import.meta.env.VITE_NFSCOIN_ADDRESS, tokenAmount],
-            chainId: POLYGON_CARDONA_ID,
-            gas: 300_000n,
-        });
+            //Call deposit on polygon bridge for polygon-base bridging
+            tx2 = await writeContractAsync({
+                abi: polygonAbi,
+                address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
+                functionName: "deposit",
+                args: [import.meta.env.VITE_NFSCOIN_ADDRESS, tokenAmount],
+                chainId: POLYGON_CARDONA_ID,
+                gas: 300_000n,
+            });
+
+            //Call depositSolana on polygon bridge for polygon-solana bridging
+        } else {
+            // const gas = await polygonClient.estimateContractGas({
+            //     address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
+            //     abi: polygonAbi,
+            //     functionName: "depositSolana",
+            //     args: [import.meta.env.VITE_NFSCOIN_ADDRESS, solanaAddress, tokenAmount],
+            //     account: "0xf397A6D22Fd1A35f3e59Cb72C35fF1bf202EaE2c"
+            // });
+            // console.log("GAS : " + gas);
+            tx2 = await writeContractAsync({
+                abi: polygonAbi,
+                address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
+                functionName: "depositSolana",
+                args: [import.meta.env.VITE_NFSCOIN_ADDRESS, solanaAddress, tokenAmount],
+                chainId: POLYGON_CARDONA_ID,
+                gas: 300_000n
+            })
+        }
+        
         polygonReceipt = await polygonClient.waitForTransactionReceipt({
             hash: tx2,
             confirmations: 1

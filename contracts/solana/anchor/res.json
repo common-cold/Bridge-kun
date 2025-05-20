@@ -1,0 +1,160 @@
+{
+    "signature": "1111111111111111111111111111111111111111111111111111111111111111",
+    "err": null,
+    "logs": [
+        "Program 11111111111111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 success",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 invoke [1]",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 success",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 invoke [2]",
+        "Program 11111111111111111111111111111111 success",
+        "Extended ProgramData account by 3936 bytes",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success"
+    ]
+}
+------------------------------
+{
+    "slot": 381538367
+}
+{
+    "signature": "3kmGEsL3REf4BwN4wzrANQmVUYHiAcs8oJFvY3RsTX98sq67M2Dh4yEhuxispeNjXe6izwKGudGrD4RiFfZZCH3T",
+    "err": null,
+    "logs": [
+        "Program 11111111111111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 success",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 invoke [1]",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 success",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 invoke [2]",
+        "Program 11111111111111111111111111111111 success",
+        "Extended ProgramData account by 3936 bytes",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success"
+    ]
+}
+------------------------------
+{
+    "slot": 381538369
+}
+{
+    "signature": "3kmGEsL3REf4BwN4wzrANQmVUYHiAcs8oJFvY3RsTX98sq67M2Dh4yEhuxispeNjXe6izwKGudGrD4RiFfZZCH3T",
+    "err": null,
+    "logs": [
+        "Program 11111111111111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 success",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 invoke [1]",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 success",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 invoke [2]",
+        "Program 11111111111111111111111111111111 success",
+        "Extended ProgramData account by 3936 bytes",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success"
+    ]
+}
+------------------------------
+{
+    "slot": 381538371
+}
+{
+    "signature": "5QKzFuSxfSmD5LpM1LqnMw4TJM3TLB6p1jiVuATqec8J9hZ5cMX2nSWwdao666Z7pKA1JWsF9EnZ3g5p94eSF2B4",
+    "err": null,
+    "logs": [
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 invoke [1]",
+        "Upgraded program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht",
+        "Program BPFLoaderUpgradeab1e11111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success"
+    ]
+}
+------------------------------
+{
+    "slot": 381538401
+}
+{
+    "signature": "4QNYDPx9oyytDgryo1fRFx4zneHZhdcHSoqK5gkzcayF2THzAZoyCtnTBMZQ9WMH1csYPES23vD6YfPDqe85WTNt",
+    "err": null,
+    "logs": [
+        "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht invoke [1]",
+        "Program log: Instruction: Initialize",
+        "Program log: Greetings from: G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht",
+        "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht consumed 11794 of 200000 compute units",
+        "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht success"
+    ]
+}
+------------------------------
+{
+    "slot": 381538425
+}
+{
+    "signature": "icC5X2EWUkoFq54oeA6XFERbswqCWKWH5B9BJETUMAiaD5JuBPsxBCiAroVCFqftY3zv7fz6vHt6oURyfxPXLBp",
+    "err": null,
+    "logs": [
+        "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht invoke [1]",
+        "Program log: Instruction: BurnToken",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb invoke [2]",
+        "Program log: Instruction: Burn",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb consumed 1676 of 192854 compute units",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb success",
+        "Program data: Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwAAAAAAAAAA",
+        "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht consumed 9822 of 200000 compute units",
+        "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht success"
+    ]
+}
+------------------------------
+{
+    "slot": 381538430
+}
+
+
+
+
+
+[
+  Log {
+    provider: JsonRpcProvider {},
+    transactionHash: '0x871a6d3bfef644f17c71ad9e7a59c3baaaadd35a0b725cd4c5b357fcaf51c042',
+    blockHash: '0xb0813034da7bfff7f2a36fa27d973c32d681d3bc22eb2d4ea4506ee70d49754e',
+    blockNumber: 13231727,
+    removed: false,
+    address: '0x301503139f704e16E973711ecBb94A0e46a2E8fB',
+    data: '0x0000000000000000000000000000000000000000000000000de0b6b3a7640000',
+    topics: [
+      '0x0f6798a560793a54c3bcfe86a93cde1e73087d944c0ea20544137d4121396885',
+      '0x000000000000000000000000f397a6d22fd1a35f3e59cb72c35ff1bf202eae2c'
+    ],
+    index: 1,
+    transactionIndex: 0
+  }
+]
+
+[
+  Log {
+    provider: JsonRpcProvider {},
+    transactionHash: '0x5dffeaae04f0a92666129ddcd2d8e5ba5cff1de0c84fc51b981444db34d8e596',
+    blockHash: '0x4831e1712673fe49412924c8a8a2192092608c669fa4f7c3cc97392293b0e367',
+    blockNumber: 13235637,
+    removed: false,
+    address: '0xDf48C593De5b6226570d002d509d8918c95b9Be1',
+    data: '0x0e967f64bf8809c375bd6cf1f9eb9f20ac114172d23ec52118d152c3fc97158c0000000000000000000000000000000000000000000000000429d069189e0000',
+    topics: [
+      '0x0ebc79505950d7b401caf8f8cd7297d588e72b98c23a9ae9778bda20bcdbc762',
+      '0x000000000000000000000000f397a6d22fd1a35f3e59cb72c35ff1bf202eae2c'
+    ],
+    index: 1,
+    transactionIndex: 0
+  }
+]
