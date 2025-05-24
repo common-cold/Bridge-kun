@@ -1,8 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Bridge } from "../target/types/bridge";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, getAccount, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { Wallet } from "ethers";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BN } from "bn.js";
@@ -122,13 +122,41 @@ describe("anchor", () => {
 
   // });
 
-  // it("Burn Tokens", async () => {
+  it("Burn Tokens", async () => {
+    const pda = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("balance"), testWallet.publicKey.toBuffer()],
+      program.programId
+    );
+    console.log("PDA: " + pda[0]);
+
+    const ata = getAssociatedTokenAddressSync(
+      mint,
+      testWallet.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    const tx = await program.methods
+      .burnToken("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf", new BN(2).mul(tokenDecimals).div(new BN(100)))
+      .accounts({
+        signer: testWallet.publicKey,
+        mintAccount: mint,
+        associatedTokenAccount: ata,
+        userBalanceAccount: pda[0],
+        tokenProgram: TOKEN_2022_PROGRAM_ID
+      })
+      .signers([testWallet])
+      .rpc();
+      console.log(tx);
+  });
+
+  // it("Read balance", async () => {
+  //   const newWallet = new PublicKey("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf")
   //   const pda = anchor.web3.PublicKey.findProgramAddressSync(
-  //     [Buffer.from("balance"), testWallet.publicKey.toBuffer()],
+  //     [Buffer.from("balance"), newWallet.toBuffer()],
   //     program.programId
   //   );
-  //   console.log("PDA: " + pda[0]);
-
   //   const ata = getAssociatedTokenAddressSync(
   //     mint,
   //     testWallet.publicKey,
@@ -136,30 +164,17 @@ describe("anchor", () => {
   //     TOKEN_2022_PROGRAM_ID,
   //     ASSOCIATED_TOKEN_PROGRAM_ID
   //   );
-
-  //   const tx = await program.methods
-  //     .burnToken("0xf397A6D22Fd1A35f3e59Cb72C35fF1bf202EaE2c", new BN(2).mul(tokenDecimals))
-  //     .accounts({
-  //       signer: testWallet.publicKey,
-  //       mintAccount: mint,
-  //       associatedTokenAccount: ata,
-  //       userBalanceAccount: pda[0],
-  //       tokenProgram: TOKEN_2022_PROGRAM_ID
-  //     })
-  //     .signers([testWallet])
-  //     .rpc();
-  //     console.log(tx);
+  //   console.log(pda);
+  //   console.log(ata);   
+  //   try {
+  //     const connection = new Connection("https://api.devnet.solana.com");
+  //     const balanceAccount = await program.account.userBalance.fetch(pda[0]);
+  //     const ataAccount = await getAccount(connection, ata, "confirmed", TOKEN_2022_PROGRAM_ID);
+  //     console.log(balanceAccount.balance.toNumber());
+  //     console.log(ataAccount.amount);
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
   // });
-
-  it("Read balance", async () => {
-    const newWallet = new PublicKey("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf")
-    const pda = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("balance"), newWallet.toBuffer()],
-      program.programId
-    );
-    console.log(pda);   
-    const account = await program.account.userBalance.fetch(pda[0]);
-    console.log(account.balance.toNumber());
-  });
 
 });

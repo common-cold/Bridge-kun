@@ -101,7 +101,7 @@ pub mod bridge {
     }
 
     pub fn burn_token(ctx: Context<BurnToken>, polygon_address: String, amount: u64) -> Result<()> {
-        require!(ctx.accounts.user_balance_account.balance >= amount, CustomError::OverBurning);
+        require!(ctx.accounts.associated_token_account.amount >= amount, CustomError::OverBurning);
         
         let cpi_context = CpiContext::new(
             ctx.accounts.token_program.to_account_info(),

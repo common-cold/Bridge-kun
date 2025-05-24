@@ -1,13 +1,10 @@
-import { Log , JsonRpcProvider, ethers, id, Wallet, Contract, Block} from "ethers";
+import { Log , JsonRpcProvider, ethers, id, Wallet, Contract, Block, TransactionResponse} from "ethers";
 import { QueueData } from "./typesData";
-import { matchTopic, rescaleToken18To9, serializeData, toNormalAddress, toSolanaAddress } from "./utils/utils";
+import { deserializeEventData, extractData, matchTopic, rescaleToken18To9, rescaleToken9To18, serializeData, startsWith, toNormalAddress, toSolanaAddress } from "./utils/utils";
 import {baseAbi, polygonAbi} from "./contract/abi";
 import Bull from "bull";
 import dotenv from "dotenv";
 import { Connection, Context, Keypair, Logs, PublicKey, sendAndConfirmRawTransaction, Transaction, TransactionInstruction } from "@solana/web3.js";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
-import { Bridge } from "./contract/solana/types/bridge";
-import idl from "./contract/solana/idl/bridge.json";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
@@ -28,6 +25,7 @@ const polygonBridgeAddress = process.env.POLYGON_BRIDGE_ADDRESS;
 const baseBridgeAddress = process.env.BASE_BRIDGE_ADDRESS;
 const MINT_TOPIC = process.env.MINT_TOPIC;
 const BURN_TOPIC = process.env.BURN_TOPIC;
+const BURN_TOPIC_SOLANA = process.env.BURN_TOPIC_SOLANA;
 const MINT_TO_SOLANA_TOPIC = process.env.MINT_TO_SOLANA_TOPIC;
 const SOLANA_BRIDGE_ADDRESS = new PublicKey(process.env.SOLANA_BRIDGE_ADDRESS!);
 const BNFSCOIN_SOL_ADDRESS = new PublicKey(process.env.BNFSCOIN_SOL_ADDRESS!);
@@ -40,14 +38,15 @@ const signerBase = new Wallet(PRIVATE_KEY!, baseProvider);
 const polygonBridgeContract = new Contract(polygonBridgeAddress!, polygonAbi, signerPolygon);
 const baseBridgeContract = new Contract(baseBridgeAddress!, baseAbi, signerBase);
 
-const connection = new Connection("https://api.devnet.solana.com");
+const connection = new Connection("https://api.devnet.solana.com", {
+    commitment: "confirmed"
+});
 const signerSolana = Keypair.fromSecretKey(bs58.decode(MINT_AUTHORITY_PRIVATE_KEY!));
 
 const mintToSolanaInterface = new ethers.Interface([
     "event MintToSolana(address indexed sender, bytes32 solanaAddress, uint256 amount)"
 ]);
 
-const BURN_TOPIC_SOLANA = "BURN_TOPIC_SOLANA"
 
 
 const redisConfig = {
@@ -200,16 +199,24 @@ logQueue.process(async (job)=> {
         //Deposited on Polygon for base
         } else if (queueData.topic === MINT_TOPIC) {
             console.log("came in polygon consumer");
-            const txn = await baseBridgeContract.depositedOnOppositeChain(queueData.sender, queueData.amount);
+            const txn: TransactionResponse = await baseBridgeContract.depositedOnOppositeChain(queueData.sender, queueData.amount);
+            await txn.wait();
             console.log(txn);
 
         //Burned on Base
         } else if (queueData.topic === BURN_TOPIC) {
             console.log("came in base consumer");
-            const txn =  await polygonBridgeContract.burnedOnOppositeChain(queueData.sender, queueData.amount);
+            const txn: TransactionResponse = await polygonBridgeContract.burnedOnOppositeChain(queueData.sender, queueData.amount);
+            await txn.wait();
             console.log(txn);
-        }
-
+        
+        //Burned on Solana
+        } else if (queueData.topic === BURN_TOPIC_SOLANA) {
+            console.log("came in solana burn consumer");
+            const txn: TransactionResponse = await polygonBridgeContract.burnedOnOppositeChain(queueData.receiver, queueData.amount);
+            await txn.wait();
+            console.log(txn);
+        } 
         return {success: true}
     } catch (e) {
         console.log(e);
@@ -242,19 +249,34 @@ function createDepositedOnOppChainTx(queueData: QueueData) {
 
 launchIndexer(Chain.Polygon);
 launchIndexer(Chain.Base);
-// connection.onLogs(
-//     SOLANA_BRIDGE_ADDRESS,
-//     (logs: Logs, context: Context) => {
-//         const programLogs = logs.logs;
-//         let isBurnTopic = programLogs.includes("Program log: Instruction: BurnToken");
-//         if (isBurnTopic) {
-//             let data = 
-//             let serializedEventData = 
-//             let logData: QueueData = {
-//                 topic: BURN_TOPIC_SOLANA,
-//                 receiver: ,
-//                 amount: 
-//             }
-//         }
-//     }
-// )
+connection.onLogs(
+    SOLANA_BRIDGE_ADDRESS,
+    async (logs: Logs, context: Context) => {
+        const tx = await connection.getTransaction(logs.signature, {
+            commitment: "confirmed"
+        });
+        if(!tx) {
+            return;
+        }
+        const programLogs = logs.logs;
+        let isBurnTopic = programLogs.includes("Program log: Instruction: BurnToken");
+        if (isBurnTopic) {
+            const programDataString = programLogs.filter(value => (
+                startsWith(value, "Program data")
+            ));
+            if(!programDataString || programDataString.length === 0) {
+                console.log("Not expected event");
+            }
+            console.log(logs);
+            const programData = extractData(programDataString[0]);
+            let event = deserializeEventData(programData);
+            let logData: QueueData = {
+                topic: BURN_TOPIC_SOLANA!,
+                receiver: event.polygon_address,
+                amount: rescaleToken9To18(event.amount)
+            }
+            logQueue.add(logData);
+        }
+    },
+    "confirmed"
+);

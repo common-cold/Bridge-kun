@@ -56,14 +56,6 @@ export function usePolygonFunctions() {
 
             //Call depositSolana on polygon bridge for polygon-solana bridging
         } else {
-            // const gas = await polygonClient.estimateContractGas({
-            //     address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
-            //     abi: polygonAbi,
-            //     functionName: "depositSolana",
-            //     args: [import.meta.env.VITE_NFSCOIN_ADDRESS, solanaAddress, tokenAmount],
-            //     account: "0xf397A6D22Fd1A35f3e59Cb72C35fF1bf202EaE2c"
-            // });
-            // console.log("GAS : " + gas);
             tx2 = await writeContractAsync({
                 abi: polygonAbi,
                 address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
@@ -86,6 +78,16 @@ export function usePolygonFunctions() {
     }
 
     const withdrawFromPolygon = async (tokenAmount: bigint) => {
+        const confirmed = await polygonClient.getTransactionCount({
+          address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
+          blockTag: "latest",
+        });
+        const pending = await polygonClient.getTransactionCount({
+          address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
+          blockTag: "pending",
+        });
+        console.log("Confirmed nonce:", confirmed);
+        console.log("Pending nonce:", pending);
         const tx = await polygonBridgeContract.withdraw(import.meta.env.VITE_NFSCOIN_ADDRESS, wagmiAddress, tokenAmount);
         let polygonReceipt = await polygonClient.waitForTransactionReceipt({
             hash: tx.hash,
@@ -100,11 +102,14 @@ export function usePolygonFunctions() {
     }
 
     const pollPolygonBridgeForBalance = async (tokenAmount: bigint) => {
+        const result = await getPolygonUserBalance() as QueryObserverResult<bigint, ReadContractErrorType>;
+        const prevAmount = result.data!;
         while(true) {
             const {data} = await getPolygonUserBalance() as QueryObserverResult<bigint, ReadContractErrorType>;
             
             console.log(data);
-            if(data! >= tokenAmount){
+            if(data! >= prevAmount + tokenAmount){
+                console.log("broke free");
                 break;
             }
             await new Promise(r => setTimeout(r, 5000));

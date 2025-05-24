@@ -35,6 +35,7 @@ const polygonBridgeAddress = process.env.POLYGON_BRIDGE_ADDRESS;
 const baseBridgeAddress = process.env.BASE_BRIDGE_ADDRESS;
 const MINT_TOPIC = process.env.MINT_TOPIC;
 const BURN_TOPIC = process.env.BURN_TOPIC;
+const BURN_TOPIC_SOLANA = process.env.BURN_TOPIC_SOLANA;
 const MINT_TO_SOLANA_TOPIC = process.env.MINT_TO_SOLANA_TOPIC;
 const SOLANA_BRIDGE_ADDRESS = new web3_js_1.PublicKey(process.env.SOLANA_BRIDGE_ADDRESS);
 const BNFSCOIN_SOL_ADDRESS = new web3_js_1.PublicKey(process.env.BNFSCOIN_SOL_ADDRESS);
@@ -43,7 +44,9 @@ const signerPolygon = new ethers_1.Wallet(PRIVATE_KEY, polygonProvider);
 const signerBase = new ethers_1.Wallet(PRIVATE_KEY, baseProvider);
 const polygonBridgeContract = new ethers_1.Contract(polygonBridgeAddress, abi_1.polygonAbi, signerPolygon);
 const baseBridgeContract = new ethers_1.Contract(baseBridgeAddress, abi_1.baseAbi, signerBase);
-const connection = new web3_js_1.Connection("https://api.devnet.solana.com");
+const connection = new web3_js_1.Connection("https://api.devnet.solana.com", {
+    commitment: "confirmed"
+});
 const signerSolana = web3_js_1.Keypair.fromSecretKey(bytes_1.bs58.decode(MINT_AUTHORITY_PRIVATE_KEY));
 const mintToSolanaInterface = new ethers_1.ethers.Interface([
     "event MintToSolana(address indexed sender, bytes32 solanaAddress, uint256 amount)"
@@ -190,12 +193,21 @@ logQueue.process((job) => __awaiter(void 0, void 0, void 0, function* () {
         else if (queueData.topic === MINT_TOPIC) {
             console.log("came in polygon consumer");
             const txn = yield baseBridgeContract.depositedOnOppositeChain(queueData.sender, queueData.amount);
+            yield txn.wait();
             console.log(txn);
             //Burned on Base
         }
         else if (queueData.topic === BURN_TOPIC) {
             console.log("came in base consumer");
             const txn = yield polygonBridgeContract.burnedOnOppositeChain(queueData.sender, queueData.amount);
+            yield txn.wait();
+            console.log(txn);
+            //Burned on Solana
+        }
+        else if (queueData.topic === BURN_TOPIC_SOLANA) {
+            console.log("came in solana burn consumer");
+            const txn = yield polygonBridgeContract.burnedOnOppositeChain(queueData.receiver, queueData.amount);
+            yield txn.wait();
             console.log(txn);
         }
         return { success: true };
@@ -223,3 +235,28 @@ function createDepositedOnOppChainTx(queueData) {
 }
 launchIndexer(Chain.Polygon);
 launchIndexer(Chain.Base);
+connection.onLogs(SOLANA_BRIDGE_ADDRESS, (logs, context) => __awaiter(void 0, void 0, void 0, function* () {
+    const tx = yield connection.getTransaction(logs.signature, {
+        commitment: "confirmed"
+    });
+    if (!tx) {
+        return;
+    }
+    const programLogs = logs.logs;
+    let isBurnTopic = programLogs.includes("Program log: Instruction: BurnToken");
+    if (isBurnTopic) {
+        const programDataString = programLogs.filter(value => ((0, utils_1.startsWith)(value, "Program data")));
+        if (!programDataString || programDataString.length === 0) {
+            console.log("Not expected event");
+        }
+        console.log(logs);
+        const programData = (0, utils_1.extractData)(programDataString[0]);
+        let event = (0, utils_1.deserializeEventData)(programData);
+        let logData = {
+            topic: BURN_TOPIC_SOLANA,
+            receiver: event.polygon_address,
+            amount: (0, utils_1.rescaleToken9To18)(event.amount)
+        };
+        logQueue.add(logData);
+    }
+}), "confirmed");

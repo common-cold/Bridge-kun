@@ -55,11 +55,13 @@ export function useBaseFunctions() {
     }
 
     const pollBaseBridgeForBalance =  async (tokenAmount: bigint) => {
+        const result = await getBaseUserBalance() as QueryObserverResult<bigint, ReadContractErrorType>;
+        const prevAmount = result.data!;
         while(true) {
             const {data} = await getBaseUserBalance() as QueryObserverResult<bigint, ReadContractErrorType>;
 
             console.log(data);
-            if(data! >= tokenAmount){
+            if(data! >= prevAmount + tokenAmount){
                 break;
             }
             await new Promise(r => setTimeout(r, 5000));

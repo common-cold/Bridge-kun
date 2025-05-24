@@ -52,17 +52,38 @@ export function useSolanaFunctions() {
         return mintTx;
     }
 
+    const burnToken = async (walletAddress: PublicKey, ata: PublicKey, polygonAddress: String, tokenAmount: BN) => {
+        const pda = PublicKey.findProgramAddressSync(
+        [Buffer.from("balance"), walletAddress.toBuffer()],
+          SOLANA_BRIDGE_ADDRESS
+        );
+
+        const burnTx = await bridgeContract.methods
+          .burnToken(polygonAddress, tokenAmount)
+          .accounts({
+            signer: walletAddress,
+            mintAccount: import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS,
+            associatedTokenAccount: ata,
+            userBalanceAccount: pda[0],
+            tokenProgram: TOKEN_2022_PROGRAM_ID
+          })
+          .rpc();
+        console.log("Burn Tx: " + burnTx);
+    }
+
     const pollSolanaBridgeForBalance = async (walletAddress: PublicKey, tokenAmount: BN) => {
         const [userbalancePda, bump] = PublicKey.findProgramAddressSync(
           [Buffer.from("balance"), walletAddress.toBuffer()],
           SOLANA_BRIDGE_ADDRESS
-        );   
+        );
+        
+        const prevAmount: BN = (await bridgeContract.account.userBalance.fetch(userbalancePda)).balance;
         
         while(true) {
             const account = await bridgeContract.account.userBalance.fetch(userbalancePda);
 
             console.log(account.balance.toNumber());
-            if (account.balance >= tokenAmount) {
+            if (account.balance >= prevAmount.add(tokenAmount)) {
                 console.log("broke free");
                 break;
             }
@@ -83,5 +104,5 @@ export function useSolanaFunctions() {
         return hexString;
     }
 
-    return {createAta, mintToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes};
+    return {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes};
 }

@@ -36,13 +36,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.schema = exports.Userbalance = void 0;
+exports.balanceSchema = exports.Userbalance = void 0;
 exports.serializeData = serializeData;
+exports.deserializeEventData = deserializeEventData;
 exports.padAddress = padAddress;
 exports.matchTopic = matchTopic;
 exports.toNormalAddress = toNormalAddress;
 exports.toSolanaAddress = toSolanaAddress;
 exports.rescaleToken18To9 = rescaleToken18To9;
+exports.rescaleToken9To18 = rescaleToken9To18;
+exports.startsWith = startsWith;
+exports.extractData = extractData;
 const ethers_1 = require("ethers");
 const bs58_1 = __importDefault(require("bs58"));
 const borsh = __importStar(require("borsh"));
@@ -52,17 +56,38 @@ class Userbalance {
     }
 }
 exports.Userbalance = Userbalance;
-exports.schema = {
+exports.balanceSchema = {
     struct: {
         balance: "u64"
+    }
+};
+class BridgeEvent {
+    constructor(event_type, source_address, polygon_address, amount) {
+        this.event_type = event_type;
+        this.source_address = source_address;
+        this.polygon_address = polygon_address;
+        this.amount = amount;
+    }
+}
+const eventSchema = {
+    struct: {
+        event_type: 'string',
+        source_address: { array: { type: 'u8', len: 32 } },
+        polygon_address: 'string',
+        amount: 'u64'
     }
 };
 function serializeData(tokenAmount) {
     const discriminitor = Buffer.from([130, 215, 54, 118, 146, 232, 126, 14]);
     const args = new Userbalance(tokenAmount);
-    const dataBuffer = borsh.serialize(exports.schema, args);
+    const dataBuffer = borsh.serialize(exports.balanceSchema, args);
     const resultantBuffer = Buffer.concat([discriminitor, dataBuffer]);
     return resultantBuffer;
+}
+function deserializeEventData(data) {
+    const dataBytes = Buffer.from(data, "base64");
+    const event = borsh.deserialize(eventSchema, dataBytes.slice(8));
+    return event;
 }
 function padAddress(address) {
     return ethers_1.ethers.zeroPadValue(address, 32);
@@ -81,4 +106,20 @@ function rescaleToken18To9(decimal18Token) {
     let scalingFactor = BigInt(Math.pow(10, 9));
     const rescaledToken = decimal18Token / scalingFactor;
     return rescaledToken.toString();
+}
+function rescaleToken9To18(decimal9Token) {
+    let scalingFactor = BigInt(Math.pow(10, 9));
+    const rescaledToken = decimal9Token * scalingFactor;
+    return rescaledToken.toString();
+}
+function startsWith(value, targetPrefix) {
+    for (let i = 0; i < targetPrefix.length; i++) {
+        if (value[i] !== targetPrefix[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+function extractData(value) {
+    return value.split(":")[1].trim();
 }

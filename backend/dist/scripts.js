@@ -1,39 +1,5 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const borsh = __importStar(require("borsh"));
 class BridgeEvent {
     constructor(event_type, source_address, polygon_address, amount) {
         this.event_type = event_type;
@@ -50,11 +16,41 @@ const schema = {
         amount: 'u64'
     }
 };
-const res = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwAAAAAAAAAA";
-const tes = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwBlzR0AAAAA";
-const buffer = Buffer.from(tes, "base64");
-const obj = borsh.deserialize(schema, buffer.slice(8));
-console.log(obj);
+// const res = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwAAAAAAAAAA";
+// const tes = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwBlzR0AAAAA"
+// const buffer = Buffer.from(tes, "base64");
+// const obj = borsh.deserialize(schema, buffer.slice(8));
+// console.log(obj);
+// const log = [
+//         "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht invoke [1]",
+//         "Program log: Instruction: BurnToken",
+//         "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb invoke [2]",
+//         "Program log: Instruction: Burn",
+//         "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb consumed 1676 of 192854 compute units",
+//         "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb success",
+//         "Program data: Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwBlzR0AAAAA",
+//         "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht consumed 9822 of 200000 compute units",
+//         "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht success"
+// ];  
+// let isBurnTopic = log.includes("Program log: Instruction: BurnToken");
+// if (isBurnTopic) {
+//   const programDataString = log.filter(value => (
+//     startsWith(value, "Program data")
+//   ));
+//   if(!programDataString || programDataString.length === 0) {
+//     console.log("Not expected event");
+//   }
+//   const programData = extractData(programDataString[0]);
+//   let event = deserializeEventData(programData);
+//   let logData: QueueData = {
+//     topic: "BURN_SOLANA",
+//     receiver: event.polygon_address,
+//     amount: rescaleToken9To18(event.amount)
+//   }
+//   console.log(logData);
+// }  else {
+//   console.log("Not burn topic");
+// }
 // const res = bs58.decode("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf");
 // console.log(ethers.decodeBase58("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf"));
 // const hexres = hexlify(res);
@@ -122,3 +118,28 @@ console.log(obj);
 //   console.log("Signature: " + JSON.stringify(signature));
 // }
 // deposit();
+const ethers_1 = require("ethers");
+const rawTx = "0xd9caed12000000000000000000000000744c083be5755351e3c9762ac131766cbfd83b4c000000000000000000000000f397a6d22fd1a35f3e59cb72c35ff1bf202eae2c0000000000000000000000000000000000000000000000000de0b6b3a7640000"; // the hex from your error
+const parsed = ethers_1.Transaction.from(rawTx);
+console.log(JSON.stringify(parsed));
+// const polygonClient = createPublicClient({ 
+//     chain: polygonZkEvmCardona,
+//     transport: http("https://polygonzkevm-cardona.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG")
+// });
+// const baseClient = createPublicClient({ 
+//     chain: baseSepolia,
+//     transport: http("https://base-sepolia.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG")
+// });
+// async function getNonce() {
+//   const confirmed = await polygonClient.getTransactionCount({
+//   address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
+//   blockTag: "latest",
+//   });
+//   const pending = await polygonClient.getTransactionCount({
+//     address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
+//     blockTag: "pending",
+//   });
+//   console.log("Confirmed nonce:", confirmed);
+//   console.log("Pending nonce:", pending);
+// }
+// getNonce();

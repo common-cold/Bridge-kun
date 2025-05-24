@@ -3,7 +3,7 @@ import { decodeBase58, encodeBytes32String, ethers, hexlify, JsonRpcProvider, Lo
 import bs58 from "bs58";
 import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { QueueData } from "./typesData";
-import { serializeData } from "./utils/utils";
+import { deserializeEventData, extractData, rescaleToken9To18, serializeData, startsWith } from "./utils/utils";
 import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 
@@ -37,11 +37,49 @@ const schema: borsh.Schema = {
 
 
 
-const res = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwAAAAAAAAAA";
-const tes = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwBlzR0AAAAA"
-const buffer = Buffer.from(tes, "base64");
-const obj = borsh.deserialize(schema, buffer.slice(8));
-console.log(obj);
+// const res = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwAAAAAAAAAA";
+// const tes = "Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwBlzR0AAAAA"
+// const buffer = Buffer.from(tes, "base64");
+// const obj = borsh.deserialize(schema, buffer.slice(8));
+// console.log(obj);
+
+
+// const log = [
+//         "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht invoke [1]",
+//         "Program log: Instruction: BurnToken",
+//         "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb invoke [2]",
+//         "Program log: Instruction: Burn",
+//         "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb consumed 1676 of 192854 compute units",
+//         "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb success",
+//         "Program data: Zb1eU3aiYdwEAAAAQnVybg6Wf2S/iAnDdb1s8fnrnyCsEUFy0j7FIRjRUsP8lxWMKgAAADB4ZjM5N0E2RDIyRmQxQTM1ZjNlNTlDYjcyQzM1ZkYxYmYyMDJFYUUyYwBlzR0AAAAA",
+//         "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht consumed 9822 of 200000 compute units",
+//         "Program G3dDgLNsvXbwk3VEwdaJ48Ju7Cruk3M9Xk3kQwhAZKht success"
+// ];  
+
+
+// let isBurnTopic = log.includes("Program log: Instruction: BurnToken");
+// if (isBurnTopic) {
+//   const programDataString = log.filter(value => (
+//     startsWith(value, "Program data")
+//   ));
+//   if(!programDataString || programDataString.length === 0) {
+//     console.log("Not expected event");
+//   }
+//   const programData = extractData(programDataString[0]);
+//   let event = deserializeEventData(programData);
+//   let logData: QueueData = {
+//     topic: "BURN_SOLANA",
+//     receiver: event.polygon_address,
+//     amount: rescaleToken9To18(event.amount)
+//   }
+//   console.log(logData);
+// }  else {
+//   console.log("Not burn topic");
+// }
+
+
+
+
 
 
 
@@ -124,3 +162,39 @@ console.log(obj);
 // }
 
 // deposit();
+
+
+import { Transaction as tx } from "ethers";
+import { createPublicClient, http } from "viem";
+import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
+
+const rawTx = "0xd9caed12000000000000000000000000744c083be5755351e3c9762ac131766cbfd83b4c000000000000000000000000f397a6d22fd1a35f3e59cb72c35ff1bf202eae2c0000000000000000000000000000000000000000000000000de0b6b3a7640000";  // the hex from your error
+const parsed = tx.from(rawTx);
+
+console.log(JSON.stringify(parsed));
+
+
+
+// const polygonClient = createPublicClient({ 
+//     chain: polygonZkEvmCardona,
+//     transport: http("https://polygonzkevm-cardona.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG")
+// });
+
+// const baseClient = createPublicClient({ 
+//     chain: baseSepolia,
+//     transport: http("https://base-sepolia.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG")
+// });
+
+// async function getNonce() {
+//   const confirmed = await polygonClient.getTransactionCount({
+//   address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
+//   blockTag: "latest",
+//   });
+//   const pending = await polygonClient.getTransactionCount({
+//     address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
+//     blockTag: "pending",
+//   });
+//   console.log("Confirmed nonce:", confirmed);
+//   console.log("Pending nonce:", pending);
+// }
+// getNonce();

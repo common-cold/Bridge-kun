@@ -16,6 +16,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { usePolygonFunctions } from "../hooks/polygonFunctions";
 import { useBaseFunctions } from "../hooks/baseFunctions";
 import { useSolanaFunctions } from "../hooks/solanaFunctions";
+import { CustomError } from "../class/CustomError";
 
 
 const POLYGON_CARDONA_ID = polygonZkEvmCardona.id;
@@ -39,12 +40,12 @@ export function Transfer() {
     const bridgeContract: Program<Idl> = getProgram(wallet);
     const {lockTokenOnPolygon, withdrawFromPolygon, pollPolygonBridgeForBalance} = usePolygonFunctions(); 
     const {withdrawFromBase, burnTokenOnBase, pollBaseBridgeForBalance} = useBaseFunctions();
-    const {createAta, mintToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes} = useSolanaFunctions();
+    const {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes} = useSolanaFunctions();
     async function transfer() {
         try{
-            if(primaryChain.value == "polygon" && secondaryChain.value == "base") {
+            if(primaryChain.value === "polygon" && secondaryChain.value === "base") {
                 if (chainId !== polygonZkEvmCardona.id) {
-                    throw new Error ("Please switch your network to Polygon zkEVm Cardona");
+                    throw new CustomError ("Please switch your network to Polygon zkEVm Cardona");
                 }
 
                 const tokenAmount = ethers.parseUnits(amount, 18);
@@ -72,9 +73,9 @@ export function Transfer() {
                     {duration: 10000}
                 );
 
-            } else if (primaryChain.value == "base" && secondaryChain.value == "polygon") {
+            } else if (primaryChain.value === "base" && secondaryChain.value === "polygon") {
                 if (chainId !== baseSepolia.id) {
-                    throw new Error ("Please switch your network to Base Sepolia");
+                    throw new CustomError ("Please switch your network to Base Sepolia");
                 }
 
                 const tokenAmount = ethers.parseUnits(amount, 18);
@@ -85,6 +86,8 @@ export function Transfer() {
 
                 //Check if the event relayed to polygon bridge via nodejs indexer by polling the user balance 
                 await pollPolygonBridgeForBalance(tokenAmount);
+
+                //call withdraw on polygon
                 let tx = await withdrawFromPolygon(tokenAmount);
 
                 toast.success(
@@ -144,19 +147,63 @@ export function Transfer() {
                     </div>,
                     {duration: 10000}
                 );
+            } else if (primaryChain.value === "solana" && secondaryChain.value === "polygon") {
+              
+              //rescale token to 9 decimal for Solana
+              let rescaledTokenAmount = new BN(rescaleToken18To9(amount).toString());
+              setButtonDisabled(true);
+
+              //call burnToken on solana
+              const ata = getAssociatedTokenAddressSync(
+                    new PublicKey(import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS),
+                    wallet?.publicKey!,
+                    false,
+                    TOKEN_2022_PROGRAM_ID,
+                    ASSOCIATED_TOKEN_PROGRAM_ID
+                );
+              console.log("ATA: " + ata);
+              await burnToken(wallet!.publicKey, ata, secondaryAddress!, rescaledTokenAmount);
+
+              //Check if the event relayed to polygon bridge via nodejs indexer by polling the user balance
+              const tokenAmount = ethers.parseUnits(amount, 18);
+              await pollPolygonBridgeForBalance(tokenAmount);
+
+              //call withdraw on polygon
+              let tx = await withdrawFromPolygon(tokenAmount);
+
+                toast.success(
+                    <div className="toastMessage">
+                      Bridge Successful!<br />
+                      <a
+                        href={`https://cardona-zkevm.polygonscan.com/tx/${tx.hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#3674e5', textDecoration: 'underline' }}
+                      >
+                        View on Polygon Cardona Explorer
+                      </a>
+                    </div>,
+                    {duration: 10000}
+                );  
+
             }
             
             setButtonDisabled(false);
     
         } catch(e) {
-            const error = e as Error;
+            let toastMessage;
+            if (e instanceof(CustomError)) {
+              toastMessage = e.message;
+            } else {
+              toastMessage = "Unexpected Error. Please try again later" 
+            }
             toast.error(
                 <div className="toastMessage">
-                  {error.message}
+                  {toastMessage}
                 </div>,
                 { duration: 6000 }
             );
-            console.log(error);  
+            console.log(e);  
             setButtonDisabled(false);
         }
 
