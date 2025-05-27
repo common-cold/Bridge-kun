@@ -68,23 +68,43 @@ const CHAIN_OPTIONS: ChainOption[] = [
 export function InputSections() {
     const [primaryChain, setPrimaryChain] = useRecoilState(primaryChainAtom);
     const [secondaryChain, setSecondaryChain] = useRecoilState(secondaryChainAtom);
-    const primaryAddress = useRecoilValue(primaryWalletAddressAtom);
-    const secondaryAddress = useRecoilValue(secondaryWalletAddressAtom);
+    const [primaryAddress, setPrimaryAddress] = useRecoilState(primaryWalletAddressAtom);
+    const [secondaryAddress, setSecondaryAddress] = useRecoilState(secondaryWalletAddressAtom);
     const setTokenAmount = useSetRecoilState(tokenAmountAtom);
     const {address} = useAccount();
     const publicKey = useAnchorWallet();
 
     console.log("primaryAddress = " + primaryAddress);
     console.log("secondaryAddress = " + secondaryAddress);
-    // console.log("ANCHORWALLET = " + JSON.stringify(publicKey));
+    // console.log("Anchor = " + JSON.stringify(publicKey));
+    // console.log("Wagmi = " + address);
+    console.log("-------------------------------");
 
 
 
     return <div style={{display: "flex", flexDirection: "column", width: "350px", backgroundColor: "white", "margin": "10px 0px",
          "padding": "20px", borderRadius: "15px", borderColor: "#D3D3D3", borderStyle: "solid", borderWidth: "0.1px", boxShadow: '0 4px 8px rgba(0,0,0,0.1)'}}>
-        <InputGroup labelName="From Network" defaultChain={primaryChain} onChange={setPrimaryChain} buttonLabel="From Wallet" currentChain={primaryChain} type={InputGroupType.Primary}/>
+        <InputGroup 
+            labelName="From Network" 
+            defaultChain={primaryChain} 
+            onChange={(chain) => {
+                setPrimaryChain(chain)
+            }} 
+            buttonLabel="From Wallet" 
+            currentChain={primaryChain} 
+            type={InputGroupType.Primary}
+        />
         <ArrowSymbol/>
-        <InputGroup labelName="To Network" defaultChain={secondaryChain} onChange={setSecondaryChain} buttonLabel="To Wallet" currentChain={secondaryChain} type={InputGroupType.Secondary}/>
+        <InputGroup 
+            labelName="To Network" 
+            defaultChain={secondaryChain} 
+            onChange={(chain) => {
+                setSecondaryChain(chain)
+            }} 
+            buttonLabel="To Wallet" 
+            currentChain={secondaryChain} 
+            type={InputGroupType.Secondary}
+        />
         <AmountInput onChange={setTokenAmount}/>
         <Transfer/>
     </div>

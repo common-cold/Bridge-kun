@@ -96,6 +96,11 @@ export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletC
     
     if (currentChain.value === "solana") {
         if (solanaAdapterAddress) {
+            if (type === InputGroupType.Primary) {
+                setPrimaryAddress(solanaAdapterAddress.toBase58())
+            } else if (type === InputGroupType.Secondary) {
+                setSecondaryAddress(solanaAdapterAddress.toBase58())
+            }
             return <AddressDiv
                 handleOnClick={()=> {
                     clearAddressState();
@@ -105,7 +110,8 @@ export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletC
                 icon={wallet?.adapter.icon!}
                 walletAddress={solanaAdapterAddress?.toBase58()!}
             />
-        }
+        }  
+        
         return <div style={{display: "flex", flexDirection: "column", position: "relative"}}>
             <ConnectButton 
                 showWallets={showWallets} 
@@ -119,23 +125,35 @@ export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletC
         </div>
 
     } else  {
-        if (wagmiAddress) {
-            return <AddressDiv 
-                handleOnClick={()=> {
-                    // if chains are either polygon or base, 
-                    // they share same address, thus clear both of them
-                    if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
-                        setPrimaryAddress(null);
-                        setSecondaryAddress(null);
-                    } else {
-                        clearAddressState();
-                    }
-                    disconnectWagmiWallet({connector});
-                    setShowWallets(false);
-                }}
-                icon={connector?.icon!}
-                walletAddress={wagmiAddress}
-            />
+            if (wagmiAddress) {
+                // if chains are either polygon or base, 
+                // set primary and secondary wallet adddress as same address
+                if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
+                    setPrimaryAddress(wagmiAddress);
+                    setSecondaryAddress(wagmiAddress);
+                } 
+                else if (type === InputGroupType.Primary) {
+                    setPrimaryAddress(wagmiAddress)
+                } 
+                else if (type === InputGroupType.Secondary) {
+                    setSecondaryAddress(wagmiAddress)
+                } 
+                return <AddressDiv 
+                    handleOnClick={()=> {
+                        // if chains are either polygon or base, 
+                        // they share same address, thus clear both of them
+                        if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
+                            setPrimaryAddress(null);
+                            setSecondaryAddress(null);
+                        } else {
+                            clearAddressState();
+                        }
+                        disconnectWagmiWallet({connector});
+                        setShowWallets(false);
+                    }}
+                    icon={connector?.icon!}
+                    walletAddress={wagmiAddress}
+                />    
         }
         return <div style={{display: "flex", flexDirection: "column", position: "relative"}}>
                 <ConnectButton 
@@ -177,16 +195,16 @@ export function ConnectButton({showWallets, handleOnClick, buttonLabel} : Connec
 
 export function AddressDiv({handleOnClick, icon, walletAddress}: AddressDivProps) {
     return <div className="spacedDiv black"
-                style={{display: "flex", justifyContent: "space-between", alignItems: "baseline", cursor
+                style={{display: "flex", justifyContent: "space-around", alignItems: "baseline", cursor
                     : "pointer", width: "124px"}}
 
                 onClick={handleOnClick}>
                 <img
                     src={icon}
-                    style={{width: "18px", height: "18px", marginRight: "7px"}}
+                    style={{width: "18px", height: "18px", marginRight: "2px"}}
                 />
                 <div style={{fontFamily: "Satoshi-Bold", overflow: "hidden"}}>
-                    {walletAddress}
+                    {walletAddress.slice(0,4) + '...' + walletAddress.slice(-4)}
                 </div>
             </div>
 }
@@ -223,7 +241,7 @@ function WagmiWallets({dropDownRef, type} : WagmiWalletProps) {
                         const result  = await connectAsync({connector});
                         const walletAddress = result.accounts[0];
 
-                        // if chians are either polygon or base, 
+                        // if chains are either polygon or base, 
                         // set primary and secondary wallet adddress as same address
                         if (primaryChain.value !== "solana" && secondaryChain.value !== "solana") {
                             setPrimaryWalletAddress(walletAddress);
