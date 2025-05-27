@@ -76,8 +76,13 @@ export function InputSections() {
 
     console.log("primaryAddress = " + primaryAddress);
     console.log("secondaryAddress = " + secondaryAddress);
+<<<<<<< HEAD
         // console.log("Anchor = " + JSON.stringify(publicKey));
         // console.log("Wagmi = " + address);
+=======
+    // console.log("Anchor = " + JSON.stringify(publicKey));
+    // console.log("Wagmi = " + address);
+>>>>>>> b4fb2350b2845e1a101abf5d55eb87c696b5e096
     console.log("-------------------------------");
 
 

@@ -10,7 +10,7 @@ interface SolanaAdapterWalletsprops {
 }
 
 export function  SolanaAdapterWallets({type} : SolanaAdapterWalletsprops) {
-    const {wallets, select } = useWallet();
+    const {publicKey: solanaAdapterAddress , wallets, select } = useWallet();
     const setPrimaryWalletAddress = useSetRecoilState(primaryWalletAddressAtom);
     const setSecondaryWalletAddress = useSetRecoilState(secondaryWalletAddressAtom);
 
