@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/typesData.ts","./src/contract/abi.ts","./src/utils/utils.ts"],"version":"5.7.3"}
+{"root":["./src/index.ts","./src/scripts.ts","./src/solana.ts","./src/typesData.ts","./src/contract/abi.ts","./src/contract/solana/types/bridge.ts","./src/utils/utils.ts"],"version":"5.7.3"}

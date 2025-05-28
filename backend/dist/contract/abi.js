@@ -60,6 +60,31 @@ exports.polygonAbi = [
             {
                 "indexed": true,
                 "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "solanaAddress",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "MintToSolana",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
                 "name": "previousOwner",
                 "type": "address"
             },
@@ -105,6 +130,29 @@ exports.polygonAbi = [
             }
         ],
         "name": "deposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "_tokenAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_solanaAddress",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "depositSolana",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

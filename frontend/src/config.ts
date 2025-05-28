@@ -5,7 +5,10 @@ import { createPublicClient } from "viem";
 import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
 import { createConfig, http, injected } from "wagmi";
 import { baseAbi, polygonAbi } from "./contract/abi";
-
+import { Bridge } from "../../contracts/solana/anchor/target/types/bridge";
+import idl from "../../contracts/solana/anchor/target/idl/bridge.json";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
 
 const baseProvider = new JsonRpcProvider(import.meta.env.VITE_BASE_RPC_URL);
 const baseWallet = new Wallet(import.meta.env.VITE_PRIVATE_KEY, baseProvider);
@@ -35,3 +38,12 @@ export const baseClient = createPublicClient({
     transport: http("https://base-sepolia.g.alchemy.com/v2/IA5XqK-rU0LYpFekBWARC-2_lWQNqmFG")
 });
 
+
+export function getProgram(wallet: any) {
+    const { connection } = useConnection();
+    const provider = new AnchorProvider(connection, wallet, {
+        commitment: "confirmed",
+    });
+    const program = new Program(idl as Bridge , provider);
+    return program;
+}
