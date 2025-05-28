@@ -6,9 +6,11 @@ backend/node_modules/
 frontend/node_modules/
 contracts/solana/anchor/.anchor/
 contracts/solana/anchor/.DS_Store/
-contracts/solana/anchor/target/
+contracts/solana/anchor/target/*
 contracts/solana/anchor/**/*.rs.bk
 contracts/solana/anchor/node_modules/
 contracts/solana/anchor/test-ledger/
 contracts/solana/anchor/.yarn
 lib/forge-std/
+!contracts/solana/anchor/target/idl/
+!contracts/solana/anchor/target/types/
