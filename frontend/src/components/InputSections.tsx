@@ -1,15 +1,12 @@
-import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { primaryChainAtom, primaryWalletAddressAtom, secondaryChainAtom, secondaryWalletAddressAtom, tokenAmountAtom } from "../store/atoms"
 import { memo } from "react"
-import { useAccount } from "wagmi"
 import { Transfer } from "./Transfer"
 import { DropDownComponent } from "./DropDown"
 import baseIcon from "../assets/base.png";
 import polygonIcon from "../assets/polygon.png";
 import solanaIcon from "../assets/solana.png";
-import { Address } from "viem"
 import { ConnectWallet } from "./ConnectWallet";
-import { useAnchorWallet } from "@solana/wallet-adapter-react"
 
 
 export enum InputGroupType {
@@ -22,15 +19,6 @@ export interface ChainOption {
     value: string,
     label: string,
     icon: string
-}
-
-interface ButtonComponentProps {
-    primaryWallet: string,
-    secondaryWallet: string,
-    primaryChain: string,
-    secondaryChain: string, 
-    amount: string, 
-    walletAddress: Address 
 }
 
 interface InputGroupProps {
@@ -68,22 +56,12 @@ const CHAIN_OPTIONS: ChainOption[] = [
 export function InputSections() {
     const [primaryChain, setPrimaryChain] = useRecoilState(primaryChainAtom);
     const [secondaryChain, setSecondaryChain] = useRecoilState(secondaryChainAtom);
-    const [primaryAddress, setPrimaryAddress] = useRecoilState(primaryWalletAddressAtom);
-    const [secondaryAddress, setSecondaryAddress] = useRecoilState(secondaryWalletAddressAtom);
+    const primaryAddress = useRecoilValue(primaryWalletAddressAtom);
+    const secondaryAddress = useRecoilValue(secondaryWalletAddressAtom);
     const setTokenAmount = useSetRecoilState(tokenAmountAtom);
-    const {address} = useAccount();
-    const publicKey = useAnchorWallet();
 
     console.log("primaryAddress = " + primaryAddress);
     console.log("secondaryAddress = " + secondaryAddress);
-<<<<<<< HEAD
-        // console.log("Anchor = " + JSON.stringify(publicKey));
-        // console.log("Wagmi = " + address);
-=======
-    // console.log("Anchor = " + JSON.stringify(publicKey));
-    // console.log("Wagmi = " + address);
->>>>>>> b4fb2350b2845e1a101abf5d55eb87c696b5e096
-    console.log("-------------------------------");
 
 
 

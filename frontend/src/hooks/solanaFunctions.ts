@@ -32,7 +32,7 @@ export function useSolanaFunctions() {
     }
 
     const mintToken = async (walletAddress: PublicKey, ata: PublicKey, tokenAmount: BN) => {
-         const [userbalancePda, bump] = PublicKey.findProgramAddressSync(
+         const [userbalancePda] = PublicKey.findProgramAddressSync(
           [Buffer.from("balance"), walletAddress.toBuffer()],
           SOLANA_BRIDGE_ADDRESS
         );   
@@ -72,14 +72,16 @@ export function useSolanaFunctions() {
     }
 
     const pollSolanaBridgeForBalance = async (walletAddress: PublicKey, tokenAmount: BN) => {
-        const [userbalancePda, bump] = PublicKey.findProgramAddressSync(
+        const [userbalancePda] = PublicKey.findProgramAddressSync(
           [Buffer.from("balance"), walletAddress.toBuffer()],
           SOLANA_BRIDGE_ADDRESS
         );
         
+        //@ts-ignore
         const prevAmount: BN = (await bridgeContract.account.userBalance.fetch(userbalancePda)).balance;
         
         while(true) {
+            //@ts-ignore
             const account = await bridgeContract.account.userBalance.fetch(userbalancePda);
 
             console.log(account.balance.toNumber());

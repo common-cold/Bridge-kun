@@ -4,8 +4,6 @@ import { polygonZkEvmCardona } from "viem/chains";
 import { polygonBridgeContract, polygonClient } from "../config";
 import { QueryObserverResult } from "@tanstack/react-query";
 import { ReadContractErrorType } from "wagmi/actions";
-import { getBridgehubContractAddress } from "viem/zksync";
-import { estimateContractGas } from "viem/actions";
 
 
 export function usePolygonFunctions() {

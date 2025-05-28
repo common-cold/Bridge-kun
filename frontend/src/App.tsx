@@ -9,9 +9,8 @@ import { config } from './config'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { HeroSection } from './components/HeroSection'
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletDisconnectButton, WalletModalProvider, WalletMultiButton } from "@solana/wallet-adapter-react-ui"
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui"
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { ConnectWallet } from './components/ConnectWallet';
 
 
 const client = new QueryClient();

@@ -1,28 +1,18 @@
-import { Address } from "viem"
-import { useAccount, useReadContract, useWriteContract } from "wagmi"
-import { baseAbi, nfsCoinAbi, polygonAbi } from "../contract/abi";
+import { useAccount } from "wagmi"
 import { ethers } from "ethers";
 import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { buttonDisabledAtom, primaryChainAtom, primaryWalletAddressAtom, secondaryChainAtom, secondaryWalletAddressAtom, tokenAmountAtom } from "../store/atoms";
-import { baseClient, getProgram, polygonBridgeContract, polygonClient } from '../config'
 import toast from "react-hot-toast";
-import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { BN, Idl, Program } from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import{ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID} from "@solana/spl-token";
-import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
-import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { usePolygonFunctions } from "../hooks/polygonFunctions";
 import { useBaseFunctions } from "../hooks/baseFunctions";
 import { useSolanaFunctions } from "../hooks/solanaFunctions";
 import { CustomError } from "../class/CustomError";
 
-
-const POLYGON_CARDONA_ID = polygonZkEvmCardona.id;
-const BASE_SEPOLIA_ID = baseSepolia.id;
-const tokenDecimals = new BN(10).pow(new BN(9));
-const MINT_AUTHORITY_KEYPAIR = Keypair.fromSecretKey(bs58.decode(import.meta.env.VITE_MINT_AUTHORITY_PRIVATE_KEY));
 
 
 export function Transfer() {
@@ -32,12 +22,9 @@ export function Transfer() {
     const secondaryAddress = useRecoilValue(secondaryWalletAddressAtom);
     const amount = useRecoilValue(tokenAmountAtom);
     const [buttonDisabled, setButtonDisabled] = useRecoilState(buttonDisabledAtom);
-    const {writeContractAsync} = useWriteContract();
     const { chainId } = useAccount();
     const wallet = useAnchorWallet(); 
-    const {connection} = useConnection();
-    const {address: wagmiAddress} = useAccount();
-    const bridgeContract: Program<Idl> = getProgram(wallet);
+    const {connection} = useConnection();;
     const {lockTokenOnPolygon, withdrawFromPolygon, pollPolygonBridgeForBalance} = usePolygonFunctions(); 
     const {withdrawFromBase, burnTokenOnBase, pollBaseBridgeForBalance} = useBaseFunctions();
     const {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes} = useSolanaFunctions();

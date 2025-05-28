@@ -5,7 +5,7 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import { ChainOption, InputGroupType } from "./InputSections";
 import { SolanaAdapterWallets } from "./custom-solana-wallet-adapter/SolanaAdapterWallets";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { primaryChainAtom, primaryWalletAddressAtom, secondaryChainAtom, secondaryWalletAddressAtom } from "../store/atoms";
 
 
@@ -49,8 +49,8 @@ export function ConnectWallet({buttonLabel, currentChain, type} : ConnectWalletC
     const [showWallets, setShowWallets] = useState(false);
     const primaryChain = useRecoilValue(primaryChainAtom);
     const secondaryChain = useRecoilValue(secondaryChainAtom);
-    const [primaryAddress, setPrimaryAddress] = useRecoilState(primaryWalletAddressAtom);
-    const [secondaryAddress, setSecondaryAddress] = useRecoilState(secondaryWalletAddressAtom);
+    const setPrimaryAddress = useSetRecoilState(primaryWalletAddressAtom);
+    const setSecondaryAddress = useSetRecoilState(secondaryWalletAddressAtom);
     const dropDownRef = useRef<HTMLDivElement | null>(null);
 
     function handleMouseClick(event: MouseEvent) {
