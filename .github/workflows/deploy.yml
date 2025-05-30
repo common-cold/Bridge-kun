@@ -23,7 +23,7 @@ jobs:
                     git pull origin master
                     export NVM_DIR="$HOME/.nvm"
                     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                    npm install
                     cd backend/
+                    npm install
                     pm2 delete all
                     pm2 start "npm run dev" --name Indexer
