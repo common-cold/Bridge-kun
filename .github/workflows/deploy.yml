@@ -24,4 +24,5 @@ jobs:
                     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
                     npm install
                     cd backend/
+                    pm2 delete all
                     pm2 start "npm run dev" --name Indexer
