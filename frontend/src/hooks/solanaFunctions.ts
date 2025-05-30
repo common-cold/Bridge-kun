@@ -11,7 +11,6 @@ import { hexlify } from "ethers";
 
 export function useSolanaFunctions() {
     const MINT_AUTHORITY_KEYPAIR = Keypair.fromSecretKey(bs58.decode(import.meta.env.VITE_MINT_AUTHORITY_PRIVATE_KEY));
-    const SOLANA_BRIDGE_ADDRESS = new PublicKey(import.meta.env.VITE_SOLANA_BRIDGE_ADDRESS!);
     const wallet = useAnchorWallet(); 
     const bridgeContract: Program<Idl> = getProgram(wallet);
 
@@ -31,19 +30,14 @@ export function useSolanaFunctions() {
         console.log("ATA Tx: " + ataTx);
     }
 
-    const mintToken = async (walletAddress: PublicKey, ata: PublicKey, tokenAmount: BN) => {
-         const [userbalancePda] = PublicKey.findProgramAddressSync(
-          [Buffer.from("balance"), walletAddress.toBuffer()],
-          SOLANA_BRIDGE_ADDRESS
-        );   
-
+    const mintToken = async (userBalancePda: PublicKey, ata: PublicKey, tokenAmount: BN) => {
         const mintTx = await bridgeContract.methods
             .mintToken(tokenAmount)
             .accounts({
                 mintAuthority: MINT_AUTHORITY_KEYPAIR.publicKey,
                 mintAccount: import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS,
                 associatedTokenAccount: ata,
-                userBalanceAccount: userbalancePda,
+                userBalanceAccount: userBalancePda,
                 tokenProgram: TOKEN_2022_PROGRAM_ID
             })
             .signers([MINT_AUTHORITY_KEYPAIR])
@@ -52,37 +46,27 @@ export function useSolanaFunctions() {
         return mintTx;
     }
 
-    const burnToken = async (walletAddress: PublicKey, ata: PublicKey, polygonAddress: String, tokenAmount: BN) => {
-        const pda = PublicKey.findProgramAddressSync(
-        [Buffer.from("balance"), walletAddress.toBuffer()],
-          SOLANA_BRIDGE_ADDRESS
-        );
-
+    const burnToken = async (walletAddress: PublicKey, ata: PublicKey, userBalancePda: PublicKey, polygonAddress: String, tokenAmount: BN) => {
         const burnTx = await bridgeContract.methods
           .burnToken(polygonAddress, tokenAmount)
           .accounts({
             signer: walletAddress,
             mintAccount: import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS,
             associatedTokenAccount: ata,
-            userBalanceAccount: pda[0],
+            userBalanceAccount: userBalancePda,
             tokenProgram: TOKEN_2022_PROGRAM_ID
           })
           .rpc();
         console.log("Burn Tx: " + burnTx);
     }
 
-    const pollSolanaBridgeForBalance = async (walletAddress: PublicKey, tokenAmount: BN) => {
-        const [userbalancePda] = PublicKey.findProgramAddressSync(
-          [Buffer.from("balance"), walletAddress.toBuffer()],
-          SOLANA_BRIDGE_ADDRESS
-        );
-        
+    const pollSolanaBridgeForBalance = async (userBalancePda: PublicKey, tokenAmount: BN) => {
         //@ts-ignore
-        const prevAmount: BN = (await bridgeContract.account.userBalance.fetch(userbalancePda)).balance;
+        const prevAmount: BN = (await bridgeContract.account.userBalance.fetch(userBalancePda)).balance;
         
         while(true) {
             //@ts-ignore
-            const account = await bridgeContract.account.userBalance.fetch(userbalancePda);
+            const account = await bridgeContract.account.userBalance.fetch(userBalancePda);
 
             console.log(account.balance.toNumber());
             if (account.balance >= prevAmount.add(tokenAmount)) {
@@ -92,6 +76,21 @@ export function useSolanaFunctions() {
             await new Promise(r => setTimeout(r, 5000));
         }
 
+    }
+
+    const createUserBalancePda = async (walletAddress: PublicKey, pdaAddress: PublicKey) => {
+        const tx = await bridgeContract.methods
+            .createUserBalancePda()
+            .accounts({
+                signer: MINT_AUTHORITY_KEYPAIR.publicKey,
+                userAccount: walletAddress,
+                userBalanceAccount: pdaAddress,
+                systemProgram: SYSTEM_PROGRAM_ID
+            })
+            .signers([MINT_AUTHORITY_KEYPAIR])
+            .rpc();
+        
+        console.log(tx);
     }
 
     const rescaleToken18To9 = (amount: string) => {
@@ -106,5 +105,5 @@ export function useSolanaFunctions() {
         return hexString;
     }
 
-    return {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes};
+    return {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, createUserBalancePda, rescaleToken18To9, convertBase58Tou32Bytes};
 }

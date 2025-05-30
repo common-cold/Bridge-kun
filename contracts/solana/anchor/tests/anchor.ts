@@ -7,6 +7,7 @@ import { Wallet } from "ethers";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BN } from "bn.js";
 import dotenv from "dotenv";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 dotenv.config({ path: "./tests/.env" });
 
@@ -122,41 +123,13 @@ describe("anchor", () => {
 
   // });
 
-  it("Burn Tokens", async () => {
-    const pda = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("balance"), testWallet.publicKey.toBuffer()],
-      program.programId
-    );
-    console.log("PDA: " + pda[0]);
-
-    const ata = getAssociatedTokenAddressSync(
-      mint,
-      testWallet.publicKey,
-      false,
-      TOKEN_2022_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID
-    );
-
-    const tx = await program.methods
-      .burnToken("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf", new BN(2).mul(tokenDecimals).div(new BN(100)))
-      .accounts({
-        signer: testWallet.publicKey,
-        mintAccount: mint,
-        associatedTokenAccount: ata,
-        userBalanceAccount: pda[0],
-        tokenProgram: TOKEN_2022_PROGRAM_ID
-      })
-      .signers([testWallet])
-      .rpc();
-      console.log(tx);
-  });
-
-  // it("Read balance", async () => {
-  //   const newWallet = new PublicKey("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf")
+  // it("Burn Tokens", async () => {
   //   const pda = anchor.web3.PublicKey.findProgramAddressSync(
-  //     [Buffer.from("balance"), newWallet.toBuffer()],
+  //     [Buffer.from("balance"), testWallet.publicKey.toBuffer()],
   //     program.programId
   //   );
+  //   console.log("PDA: " + pda[0]);
+
   //   const ata = getAssociatedTokenAddressSync(
   //     mint,
   //     testWallet.publicKey,
@@ -164,17 +137,73 @@ describe("anchor", () => {
   //     TOKEN_2022_PROGRAM_ID,
   //     ASSOCIATED_TOKEN_PROGRAM_ID
   //   );
+
+  //   const tx = await program.methods
+  //     .burnToken("ywouFgXjDx2aJizmAG4DBKcxUrfvNn1kjtpwpB2Xtaf", new BN(2).mul(tokenDecimals).div(new BN(100)))
+  //     .accounts({
+  //       signer: testWallet.publicKey,
+  //       mintAccount: mint,
+  //       associatedTokenAccount: ata,
+  //       userBalanceAccount: pda[0],
+  //       tokenProgram: TOKEN_2022_PROGRAM_ID
+  //     })
+  //     .signers([testWallet])
+  //     .rpc();
+  //     console.log(tx);
+  // });
+
+  // it("Read balance", async () => {
+  //   const newWallet = new PublicKey("FZiyjp66HSZAnst6PX3YDFekCJyASnnRLTcf17jVfa8V")
+  //   const pda = anchor.web3.PublicKey.findProgramAddressSync(
+  //     [Buffer.from("balance"), newWallet.toBuffer()],
+  //     program.programId
+  //   );
+  //   // const ata = getAssociatedTokenAddressSync(
+  //   //   mint,
+  //   //   testWallet.publicKey,
+  //   //   false,
+  //   //   TOKEN_2022_PROGRAM_ID,
+  //   //   ASSOCIATED_TOKEN_PROGRAM_ID
+  //   // );
   //   console.log(pda);
-  //   console.log(ata);   
+  //   // console.log(ata);   
   //   try {
   //     const connection = new Connection("https://api.devnet.solana.com");
   //     const balanceAccount = await program.account.userBalance.fetch(pda[0]);
-  //     const ataAccount = await getAccount(connection, ata, "confirmed", TOKEN_2022_PROGRAM_ID);
+  //     // const ataAccount = await getAccount(connection, ata, "confirmed", TOKEN_2022_PROGRAM_ID);
   //     console.log(balanceAccount.balance.toNumber());
-  //     console.log(ataAccount.amount);
+  //     // console.log(ataAccount.amount);
   //   } catch (e) {
   //     console.log(e);
   //   }
   // });
+
+  it("Create User Balance Pda", async() => {
+    const newWallet = new PublicKey("Dp84PKSLZPEMrAvgx4pzqKnMZCnhrcpjupwxZAb9kr4X");
+    const pda = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("balance"), newWallet.toBuffer()],
+      program.programId
+    );
+    console.log(pda);
+    const connection = new Connection("https://api.devnet.solana.com");
+    const accountInfo = await connection.getAccountInfo(pda[0]);
+    if(accountInfo) {
+      console.log("Exists");
+    } else {
+      console.log("Not exists");
+      const tx = await program.methods
+        .createUserBalancePda()
+        .accounts({
+          signer: payerWallet.publicKey,
+          userAccount: newWallet,
+          userBalanceAccount: pda[0],
+          systemProgram: SYSTEM_PROGRAM_ID
+        })
+        .signers([payerWallet])
+        .rpc();
+      console.log(tx);
+    }
+    
+  });
 
 });

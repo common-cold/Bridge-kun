@@ -76,16 +76,6 @@ export function usePolygonFunctions() {
     }
 
     const withdrawFromPolygon = async (tokenAmount: bigint) => {
-        const confirmed = await polygonClient.getTransactionCount({
-          address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
-          blockTag: "latest",
-        });
-        const pending = await polygonClient.getTransactionCount({
-          address: "0x94A4abD13582A287ab7454866D1f6ccfd46Ae5c6",
-          blockTag: "pending",
-        });
-        console.log("Confirmed nonce:", confirmed);
-        console.log("Pending nonce:", pending);
         const tx = await polygonBridgeContract.withdraw(import.meta.env.VITE_NFSCOIN_ADDRESS, wagmiAddress, tokenAmount);
         let polygonReceipt = await polygonClient.waitForTransactionReceipt({
             hash: tx.hash,

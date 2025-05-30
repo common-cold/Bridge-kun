@@ -187,6 +187,58 @@ export type Bridge = {
       "args": []
     },
     {
+      "name": "createUserBalancePda",
+      "discriminator": [
+        124,
+        185,
+        35,
+        29,
+        51,
+        122,
+        220,
+        135
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "userAccount"
+        },
+        {
+          "name": "userBalanceAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  97,
+                  108,
+                  97,
+                  110,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "userAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "depositedOnOppositeChain",
       "discriminator": [
         130,

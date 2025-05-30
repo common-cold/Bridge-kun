@@ -188,7 +188,7 @@ logQueue.process((job) => __awaiter(void 0, void 0, void 0, function* () {
             tx.feePayer = signerSolana.publicKey;
             const signature = yield connection.sendTransaction(tx, [signerSolana]);
             console.log("Signature: " + signature);
-            //Deposited on Polygon for base
+            //Deposited on Polygon for base 
         }
         else if (queueData.topic === MINT_TOPIC) {
             console.log("came in polygon consumer");

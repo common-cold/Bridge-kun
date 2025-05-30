@@ -120,6 +120,10 @@ pub mod bridge {
         });
         Ok(())
     }
+
+    pub fn create_user_balance_pda (_ctx: Context<CreateUserBalancePda>) -> Result<()> {
+        Ok(())
+    }
  
 
 }
@@ -226,6 +230,27 @@ pub struct BurnToken<'info> {
     pub user_balance_account: Account<'info, UserBalance>,
 
     pub token_program: Program<'info, Token2022>
+}
+
+#[derive(Accounts)]
+pub struct CreateUserBalancePda<'info> {
+    
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub user_account: SystemAccount<'info>,
+
+    #[account(
+        init,
+        payer = signer,
+        space = 8 + UserBalance::INIT_SPACE,
+        seeds = [b"balance".as_ref(), user_account.key().as_ref()],
+        bump
+    )]
+    pub user_balance_account: Account<'info, UserBalance>,
+
+    pub system_program: Program<'info, System>
+
 }
 
 

@@ -14,6 +14,7 @@ import { useSolanaFunctions } from "../hooks/solanaFunctions";
 import { CustomError } from "../class/CustomError";
 
 
+const SOLANA_BRIDGE_ADDRESS = new PublicKey(import.meta.env.VITE_SOLANA_BRIDGE_ADDRESS!);
 
 export function Transfer() {
     const primaryChain = useRecoilValue(primaryChainAtom);
@@ -27,7 +28,7 @@ export function Transfer() {
     const {connection} = useConnection();;
     const {lockTokenOnPolygon, withdrawFromPolygon, pollPolygonBridgeForBalance} = usePolygonFunctions(); 
     const {withdrawFromBase, burnTokenOnBase, pollBaseBridgeForBalance} = useBaseFunctions();
-    const {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes} = useSolanaFunctions();
+    const {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, createUserBalancePda, rescaleToken18To9, convertBase58Tou32Bytes} = useSolanaFunctions();
     async function transfer() {
         try{
             if(primaryChain.value === "polygon" && secondaryChain.value === "base") {
@@ -96,6 +97,17 @@ export function Transfer() {
                 setButtonDisabled(true);
                 
                 const encodedSolanaWalletAddr = convertBase58Tou32Bytes(wallet!.publicKey.toString());
+                
+                const [userBalancePda] = PublicKey.findProgramAddressSync(
+                  [Buffer.from("balance"), wallet!.publicKey.toBuffer()],
+                  SOLANA_BRIDGE_ADDRESS
+                );
+                console.log("PDA: " + userBalancePda);
+                const pdaInfo = await connection.getAccountInfo(userBalancePda);
+                if (!pdaInfo) {
+                  await createUserBalancePda(wallet!.publicKey, userBalancePda);
+                }
+
                 //lock token on Polygons
                 await lockTokenOnPolygon(tokenAmount, encodedSolanaWalletAddr);
 
@@ -103,7 +115,7 @@ export function Transfer() {
                 let rescaledTokenAmount = new BN(rescaleToken18To9(amount).toString());
 
                 //Check if the event relayed to solana bridge via nodejs indexer by polling the user balance
-                await pollSolanaBridgeForBalance(wallet!.publicKey, rescaledTokenAmount);
+                await pollSolanaBridgeForBalance(userBalancePda, rescaledTokenAmount);
                 const ata = getAssociatedTokenAddressSync(
                     new PublicKey(import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS),
                     wallet?.publicKey!,
@@ -118,7 +130,7 @@ export function Transfer() {
                     await createAta(ata);
                 }
                 //minting equivalent amount to ATA
-                const tx = await mintToken(wallet!.publicKey, ata, rescaledTokenAmount);
+                const tx = await mintToken(userBalancePda, ata, rescaledTokenAmount);
 
                 toast.success(
                     <div className="toastMessage">
@@ -147,9 +159,14 @@ export function Transfer() {
                     false,
                     TOKEN_2022_PROGRAM_ID,
                     ASSOCIATED_TOKEN_PROGRAM_ID
-                );
+              );
+              const [userBalancePda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("balance"), wallet!.publicKey.toBuffer()],
+                  SOLANA_BRIDGE_ADDRESS
+              );
               console.log("ATA: " + ata);
-              await burnToken(wallet!.publicKey, ata, secondaryAddress!, rescaledTokenAmount);
+              console.log("PDA: " + userBalancePda);
+              await burnToken(wallet!.publicKey, ata, userBalancePda, secondaryAddress!, rescaledTokenAmount);
 
               //Check if the event relayed to polygon bridge via nodejs indexer by polling the user balance
               const tokenAmount = ethers.parseUnits(amount, 18);

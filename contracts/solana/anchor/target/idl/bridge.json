@@ -181,6 +181,58 @@
       "args": []
     },
     {
+      "name": "create_user_balance_pda",
+      "discriminator": [
+        124,
+        185,
+        35,
+        29,
+        51,
+        122,
+        220,
+        135
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_account"
+        },
+        {
+          "name": "user_balance_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  97,
+                  108,
+                  97,
+                  110,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user_account"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "deposited_on_opposite_chain",
       "discriminator": [
         130,
