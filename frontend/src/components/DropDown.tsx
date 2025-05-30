@@ -16,34 +16,31 @@ export function DropDownComponent({chainOptions, defaultChain, onChange}: DropDo
 
 
     return <div style={{display: "flex", flexDirection: "column", position: "relative"}}>
-        <div className="dropDownStyle" style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-            <div style={{display: "flex", justifyContent: "flex-start", alignItems: "center", fontFamily: "Satoshi-Medium"}} onClick={()=> {
-                console.log("clicked");
+        <div className="dropDownStyle" style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} onClick={()=> {
                 setIsExpanded(prev => !prev)
             }}>
+            <div style={{display: "flex", justifyContent: "flex-start", alignItems: "center", fontFamily: "Satoshi-Medium", border: "5px"}}>
                 <img 
                     className="iconStyle"
                     src={selectedChain.icon} 
                 />           
                 {selectedChain.label}           
             </div>
-            <button 
-                style={{backgroundColor: "transparent", border: "none"}}
-                onClick={()=>setIsExpanded(prev=> !prev)}>
-    
-            <svg
-                style={{
-                  width: "18px",
-                  height: "18px",
-                  transition: "transform 0.3s",
-                  transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                  stroke: "#696969",
-                }}
-                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2"
-            >         
-                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
-            </svg>
-            </button>
+            <div 
+                style={{backgroundColor: "transparent", border: "none"}}>
+                <svg
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      transition: "transform 0.3s",
+                      transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                      stroke: "#696969",
+                    }}
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2"
+                >         
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                </svg>
+            </div>
         </div>
         {
             isExpanded && (
@@ -51,7 +48,6 @@ export function DropDownComponent({chainOptions, defaultChain, onChange}: DropDo
                 style={{
                     overflow: "hidden",
                     transition: "all 0.3s ease",
-                    maxHeight: isExpanded ? "120px" : "0px",
                     position: 'absolute',
                     width: '100%',
                     top: '100%',

@@ -1,127 +1,55 @@
-import { Address } from "viem"
-import { useAccount, useReadContract, useWriteContract } from "wagmi"
-import { baseAbi, nfsCoinAbi, polygonAbi } from "../contract/abi";
+import { useAccount } from "wagmi"
 import { ethers } from "ethers";
 import { baseSepolia, polygonZkEvmCardona } from "viem/chains";
-import { useRecoilState } from "recoil";
-import { buttonDisabledAtom } from "../store/atoms";
-import { baseBridgeContract, baseClient, polygonBridgeContract, polygonClient } from '../config'
-import { QueryObserverResult } from "@tanstack/react-query";
-import { ReadContractErrorType } from "wagmi/actions";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { buttonDisabledAtom, primaryChainAtom, primaryWalletAddressAtom, secondaryChainAtom, secondaryWalletAddressAtom, tokenAmountAtom } from "../store/atoms";
 import toast from "react-hot-toast";
-
-interface TransferProps {
-    primaryChain: string,
-    secondaryChain: string,
-    amount: string,
-    walletAddress: Address
-}
-
-
-const POLYGON_CARDONA_ID = polygonZkEvmCardona.id;
-const BASE_SEPOLIA_ID = baseSepolia.id;
+import { PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
+import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import{ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID} from "@solana/spl-token";
+import { usePolygonFunctions } from "../hooks/polygonFunctions";
+import { useBaseFunctions } from "../hooks/baseFunctions";
+import { useSolanaFunctions } from "../hooks/solanaFunctions";
+import { CustomError } from "../class/CustomError";
 
 
-export function Transfer({primaryChain, secondaryChain, amount, walletAddress} : TransferProps) {
-    
+
+export function Transfer() {
+    const primaryChain = useRecoilValue(primaryChainAtom);
+    const secondaryChain = useRecoilValue(secondaryChainAtom);
+    const primaryAddress = useRecoilValue(primaryWalletAddressAtom);
+    const secondaryAddress = useRecoilValue(secondaryWalletAddressAtom);
+    const amount = useRecoilValue(tokenAmountAtom);
     const [buttonDisabled, setButtonDisabled] = useRecoilState(buttonDisabledAtom);
-    const {writeContractAsync} = useWriteContract();
     const { chainId } = useAccount();
-
-    const {refetch : getBaseUserBalance} = useReadContract({
-        abi: baseAbi,
-        address: import.meta.env.VITE_BASE_BRIDGE_ADDRESS,
-        functionName: "getBalance",
-        args: [walletAddress],
-        chainId: BASE_SEPOLIA_ID
-    });
-
-    const {refetch: getPolygonUserBalance} = useReadContract({
-        abi: baseAbi,
-        address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
-        functionName: "getBalance",
-        args: [walletAddress],
-        chainId: POLYGON_CARDONA_ID
-    });
-    
+    const wallet = useAnchorWallet(); 
+    const {connection} = useConnection();;
+    const {lockTokenOnPolygon, withdrawFromPolygon, pollPolygonBridgeForBalance} = usePolygonFunctions(); 
+    const {withdrawFromBase, burnTokenOnBase, pollBaseBridgeForBalance} = useBaseFunctions();
+    const {createAta, mintToken, burnToken, pollSolanaBridgeForBalance, rescaleToken18To9, convertBase58Tou32Bytes} = useSolanaFunctions();
     async function transfer() {
         try{
-
-            if(primaryChain == "polygon" && secondaryChain == "base") {
+            if(primaryChain.value === "polygon" && secondaryChain.value === "base") {
                 if (chainId !== polygonZkEvmCardona.id) {
-                    throw new Error ("Please switch your network to Polygon zkEVm Cardona");
+                    throw new CustomError ("Please switch your network to Polygon zkEVm Cardona");
                 }
 
                 const tokenAmount = ethers.parseUnits(amount, 18);
-                
                 setButtonDisabled(true);
                 
-                // Approve tokens to bridge
-                const tx = await writeContractAsync({
-                    abi: nfsCoinAbi,
-                    address: import.meta.env.VITE_NFSCOIN_ADDRESS,
-                    functionName: "approve",
-                    args: [import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS, tokenAmount],
-                    chainId: POLYGON_CARDONA_ID,
-                });
-                let polygonReceipt = await polygonClient.waitForTransactionReceipt({
-                    hash: tx,
-                    confirmations: 1
-                });
-                if(polygonReceipt.status === 'reverted') {
-                    console.log(JSON.stringify(polygonReceipt.logs));
-                    throw new Error("Approval Error");
-                }
-                console.log(JSON.stringify(tx));
-
-
-                //Call deposit on polygon bridge
-                const tx2 = await writeContractAsync({
-                    abi: polygonAbi,
-                    address: import.meta.env.VITE_POLYGON_BRIDGE_ADDRESS,
-                    functionName: "deposit",
-                    args: [import.meta.env.VITE_NFSCOIN_ADDRESS, tokenAmount],
-                    chainId: POLYGON_CARDONA_ID,
-                    gas: 300_000n,
-                });
-                polygonReceipt = await polygonClient.waitForTransactionReceipt({
-                    hash: tx2,
-                    confirmations: 1
-                });
-                if(polygonReceipt.status === 'reverted') {
-                    console.log(JSON.stringify(polygonReceipt.logs));
-                    throw new Error("Deposit Error on Polygon Bridge");
-                }
-                console.log(JSON.stringify(tx2));
-
+                //lock token on Polygon
+                await lockTokenOnPolygon(tokenAmount, null);
 
                 //Check if the event relayed to base bridge via nodejs indexer by polling the user balance 
-                while(true) {
-                    const {data} = await getBaseUserBalance() as QueryObserverResult<bigint, ReadContractErrorType>;
-
-                    console.log(data);
-                    if(data! >= tokenAmount){
-                        break;
-                    }
-                    await new Promise(r => setTimeout(r, 5000));
-                }
-
-                const tx3 = await baseBridgeContract.withdraw(import.meta.env.VITE_BNFSCOIN_ADDRESS, walletAddress, tokenAmount);
-                let baserReceipt = await baseClient.waitForTransactionReceipt({
-                    hash: tx3.hash,
-                    confirmations: 1
-                });
-                if(baserReceipt.status === 'reverted') {
-                    console.log(JSON.stringify(baserReceipt.logs));
-                    throw new Error("Withdraw Error on Base Bridge");
-                }
-                console.log(JSON.stringify(tx3));
+                await pollBaseBridgeForBalance(tokenAmount);
+                let tx = await withdrawFromBase(tokenAmount);
 
                 toast.success(
                             <div className="toastMessage">
                               Bridge Successful!<br />
                               <a
-                                href={`https://sepolia.basescan.org/tx/${tx3.hash}`}
+                                href={`https://sepolia.basescan.org/tx/${tx.hash}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{ color: '#3674e5', textDecoration: 'underline' }}
@@ -132,62 +60,28 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     {duration: 10000}
                 );
 
-            } else if (primaryChain == "base" && secondaryChain == "polygon") {
+            } else if (primaryChain.value === "base" && secondaryChain.value === "polygon") {
                 if (chainId !== baseSepolia.id) {
-                    throw new Error ("Please switch your network to Base Sepolia");
+                    throw new CustomError ("Please switch your network to Base Sepolia");
                 }
 
                 const tokenAmount = ethers.parseUnits(amount, 18);
-
                 setButtonDisabled(true);
 
                 //Call burn on base bridge
-                const tx = await writeContractAsync({
-                    abi: baseAbi,
-                    address: import.meta.env.VITE_BASE_BRIDGE_ADDRESS,
-                    functionName: "burn",
-                    args: [import.meta.env.VITE_BNFSCOIN_ADDRESS, tokenAmount],
-                    chainId: BASE_SEPOLIA_ID,
-                    gas: 300_000n,
-                });
-                let baserReceipt = await baseClient.waitForTransactionReceipt({
-                    hash: tx,
-                    confirmations: 1
-                });
-                if(baserReceipt.status === 'reverted') {
-                    console.log(JSON.stringify(baserReceipt.logs));
-                    throw new Error("Burn Error on Polygon Bridge");
-                }
-                console.log(JSON.stringify(tx));
-
+                await burnTokenOnBase(tokenAmount);
 
                 //Check if the event relayed to polygon bridge via nodejs indexer by polling the user balance 
-                while(true) {
-                    const {data} = await getPolygonUserBalance() as QueryObserverResult<bigint, ReadContractErrorType>;
+                await pollPolygonBridgeForBalance(tokenAmount);
 
-                    console.log(data);
-                    if(data! >= tokenAmount){
-                        break;
-                    }
-                    await new Promise(r => setTimeout(r, 5000));
-                }
-
-                const tx2 = await polygonBridgeContract.withdraw(import.meta.env.VITE_NFSCOIN_ADDRESS, walletAddress, tokenAmount);
-                let polygonReceipt = await polygonClient.waitForTransactionReceipt({
-                    hash: tx2.hash,
-                    confirmations: 1
-                });
-                if(polygonReceipt.status === 'reverted') {
-                    console.log(JSON.stringify(polygonReceipt.logs));
-                    throw new Error("Withdraw Error on Base Bridge");
-                }
-                console.log(JSON.stringify(tx2));
+                //call withdraw on polygon
+                let tx = await withdrawFromPolygon(tokenAmount);
 
                 toast.success(
                     <div className="toastMessage">
                       Bridge Successful!<br />
                       <a
-                        href={`https://cardona-zkevm.polygonscan.com/tx/${tx2.hash}`}
+                        href={`https://cardona-zkevm.polygonscan.com/tx/${tx.hash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: '#3674e5', textDecoration: 'underline' }}
@@ -197,19 +91,106 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
                     </div>,
                     {duration: 10000}
                 );
+            } else if (primaryChain.value === "polygon" && secondaryChain.value === "solana") {
+                const tokenAmount = ethers.parseUnits(amount, 18);
+                setButtonDisabled(true);
+                
+                const encodedSolanaWalletAddr = convertBase58Tou32Bytes(wallet!.publicKey.toString());
+                //lock token on Polygons
+                await lockTokenOnPolygon(tokenAmount, encodedSolanaWalletAddr);
+
+                //rescale token from 18 decimal in Polygon to 9 decimal in Solana
+                let rescaledTokenAmount = new BN(rescaleToken18To9(amount).toString());
+
+                //Check if the event relayed to solana bridge via nodejs indexer by polling the user balance
+                await pollSolanaBridgeForBalance(wallet!.publicKey, rescaledTokenAmount);
+                const ata = getAssociatedTokenAddressSync(
+                    new PublicKey(import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS),
+                    wallet?.publicKey!,
+                    false,
+                    TOKEN_2022_PROGRAM_ID,
+                    ASSOCIATED_TOKEN_PROGRAM_ID
+                );
+                console.log("ATA: " + ata);
+                const ataInfo = await connection.getAccountInfo(ata);
+                if (!ataInfo) {
+                    //first create an ATA for the wallet
+                    await createAta(ata);
+                }
+                //minting equivalent amount to ATA
+                const tx = await mintToken(wallet!.publicKey, ata, rescaledTokenAmount);
+
+                toast.success(
+                    <div className="toastMessage">
+                      Bridge Successful!<br />
+                      <a
+                        href={`https://explorer.solana.com/tx/${tx}?cluster=devnet`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#3674e5', textDecoration: 'underline' }}
+                      >
+                        View on Solana Devnet Explorer
+                      </a>
+                    </div>,
+                    {duration: 10000}
+                );
+            } else if (primaryChain.value === "solana" && secondaryChain.value === "polygon") {
+              
+              //rescale token to 9 decimal for Solana
+              let rescaledTokenAmount = new BN(rescaleToken18To9(amount).toString());
+              setButtonDisabled(true);
+
+              //call burnToken on solana
+              const ata = getAssociatedTokenAddressSync(
+                    new PublicKey(import.meta.env.VITE_BNFSCOIN_SOL_ADDRESS),
+                    wallet?.publicKey!,
+                    false,
+                    TOKEN_2022_PROGRAM_ID,
+                    ASSOCIATED_TOKEN_PROGRAM_ID
+                );
+              console.log("ATA: " + ata);
+              await burnToken(wallet!.publicKey, ata, secondaryAddress!, rescaledTokenAmount);
+
+              //Check if the event relayed to polygon bridge via nodejs indexer by polling the user balance
+              const tokenAmount = ethers.parseUnits(amount, 18);
+              await pollPolygonBridgeForBalance(tokenAmount);
+
+              //call withdraw on polygon
+              let tx = await withdrawFromPolygon(tokenAmount);
+
+                toast.success(
+                    <div className="toastMessage">
+                      Bridge Successful!<br />
+                      <a
+                        href={`https://cardona-zkevm.polygonscan.com/tx/${tx.hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#3674e5', textDecoration: 'underline' }}
+                      >
+                        View on Polygon Cardona Explorer
+                      </a>
+                    </div>,
+                    {duration: 10000}
+                );  
+
             }
             
             setButtonDisabled(false);
     
         } catch(e) {
-            const error = e as Error;
+            let toastMessage;
+            if (e instanceof(CustomError)) {
+              toastMessage = e.message;
+            } else {
+              toastMessage = "Unexpected Error. Please try again later" 
+            }
             toast.error(
                 <div className="toastMessage">
-                  {error.message}
+                  {toastMessage}
                 </div>,
                 { duration: 6000 }
             );
-            console.log(error.message);  
+            console.log(e);  
             setButtonDisabled(false);
         }
 
@@ -219,7 +200,7 @@ export function Transfer({primaryChain, secondaryChain, amount, walletAddress} :
     return <button className="bg-blue" style={{height: "40px", color: "white", fontFamily: "Satoshi-Black", fontSize: "16px",
                  borderRadius: "10px", backgroundColor: buttonDisabled ? "gray" : "#0098fe", 
                  borderStyle: "none", cursor: buttonDisabled ? "not-allowed" : "pointer"}}
-                 disabled = {!walletAddress || buttonDisabled}
+                 disabled = {!primaryAddress || !secondaryAddress || buttonDisabled}
                  onClick={()=> (transfer())}>
                     Transfer
     </button>

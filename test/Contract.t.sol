@@ -18,7 +18,7 @@ contract TestContract is Test {
 
     event Mint(address indexed sender, uint256 amount);
     event Burn(address indexed sender, uint256 amount);
-
+    event MintToSolana(address indexed sender, bytes32 solanaAddress, uint256 amount);
 
     function setUp() public {
         nfsCoin = new NFSCoin();
@@ -93,7 +93,21 @@ contract TestContract is Test {
         assertEq(nfsCoin.balanceOf(myAddr), 72);
         assertEq(nfsCoin.totalSupply(), 100);
            
-    }
+    }    
 
-    
+    function testSolanaDepositEvent() public {
+        assertEq(nfsCoin.balanceOf(myAddr), 100, "ok");
+        assertEq(bnfsCoin.balanceOf(myAddr), 0);
+        assertEq(bnfsCoin.totalSupply(), 0);
+
+        
+        //deposit on polygonBridge
+        
+        vm.startPrank(myAddr);
+        //test event
+        vm.expectEmit(true, false, false, true);
+        emit MintToSolana(myAddr, 0x0e967f64bf8809c375bd6cf1f9eb9f20ac114172d23ec52118d152c3fc97158c, 30);
+        polygonBridge.depositSolana(nfsCoin, 0x0e967f64bf8809c375bd6cf1f9eb9f20ac114172d23ec52118d152c3fc97158c, 30);
+        vm.stopPrank();
+    }    
 }
