@@ -1,6 +1,6 @@
 # <h1 align="center"> Bridge-kun 🌉 </h1>
 
-**A One-Way Bridge for transferring tokens between Polygon and Base blockchains.** 🚀
+**A One-Way Bridge for transferring tokens between Polygon, Solana and Base blockchains.** 🚀
 
 ---
 
@@ -8,23 +8,24 @@
 
 1. **Backend** 🛠️: Contains the Indexer, handles blockchain interactions, event polling, and queue processing.  
 2. **Frontend** 💻: A React + TypeScript + Vite application for user interaction.  
-3. **Smart Contracts** 🔗: Solidity contracts for bridging tokens between Polygon and Base.  
+3. **Smart Contracts** 🔗: Solidity & Anchor contracts for bridging tokens between Polygon, Base and Solana.  
 
 ---
 
 ## Usage 🧑‍💻
 
-1. This is a **one-way bridge**, so assets from **Polygon zkEVM Cardona TestNet** can be transferred to **Base Sepolia**.  
-2. It supports **NFSCoin** present on Polygon, which can be bridged to **BNFSCoin** on Base.
-3. **NFSCoin** and **BNFSCoin** both reside at `0x744c083Be5755351e3c9762AC131766cbFd83b4c` in their respsective chains.
+1. This is a **one-way bridge**, so assets from **Polygon zkEVM Cardona TestNet** can be transferred to **Base Sepolia** & **Solana Devnet**.  
+2. It supports **NFSCoin** present on Polygon, which can be bridged to **BNFSCoin** on Base & Solana.
+3. **NFSCoin** and **BNFSCoin** reside at `0x744c083Be5755351e3c9762AC131766cbFd83b4c` on **Polygon** & **Base**.
+4. Mint of **BNFSCoin** on **Solana Devent** resides at `9tRbLwrMqR4RaWLbLdRJGW8fKsd3ft7pUwp2nTHtJcdZ`
 > **NFSCoin** stands for **Need For Speed Coin**, inspired by the popular racing game. 🏎️  
 
 ### Steps to Use:
 
 1. **Switch your wallet** to **Polygon zkEVM Cardona Testnet**.  
 2. **Airdrop yourself NFSCoin** using the button at the top right of the interface (you will receive **10 NFSCoin**).  
-3. You can now **bridge any amount of NFSCoin** from **Polygon zkEVM Cardona Testnet** to **Base Sepolia**.  
-4. Similarly, you can bridge **BNFSCoin** **from Base Sepolia** back to **Polygon zkEVM**.  
+3. You can now **bridge any amount of NFSCoin** from **Polygon zkEVM Cardona Testnet** to **Base Sepolia** or **Solana Devent**.  
+4. Similarly, you can bridge **BNFSCoin** **from Base Sepolia** or **Solana Devent** back to **Polygon zkEVM**.  
 
 Enjoy seamless and secure token transfers! 🌉✨
 
@@ -32,11 +33,35 @@ Enjoy seamless and secure token transfers! 🌉✨
 
 ## Demo 💻
 
+### Polygon to Solana Transfer
+
+
+https://github.com/user-attachments/assets/b1181e2f-5a5f-4704-8fb7-98add911d937
+
+
+
+
+### Solana to Polygon Transfer
+
+
+https://github.com/user-attachments/assets/8a8ebfdf-8280-44f9-b3dd-5be361ef5275
+
+
+
+
 ### Polygon to Base Transfer
-   https://github.com/user-attachments/assets/94a11547-706e-403b-8762-df30959a912b
+
+
+https://github.com/user-attachments/assets/0910e7f1-f149-42c4-bd87-0d95e81eb7fd
+
+
 
 ### Base to Polygon Transfer
-   https://github.com/user-attachments/assets/af4dbc38-9ff5-4457-b2ba-dc37c92b3b8a
+   
+
+https://github.com/user-attachments/assets/c63e3eec-228a-444e-a2a7-1028dfac819c
+
+
 
 ---
 
@@ -65,6 +90,11 @@ The backend contains the Indexer and is responsible for interacting with the blo
    BASE_RPC_URL=""
    MINT_TOPIC="Mint(address,uint256)"
    BURN_TOPIC="Burn(address,uint256)"
+   BURN_TOPIC_SOLANA = "BURN_TOPIC_SOLANA"
+   MINT_TO_SOLANA_TOPIC = "MintToSolana(address,bytes32,uint256)"
+   SOLANA_BRIDGE_ADDRESS = ""
+   BNFSCOIN_SOL_ADDRESS = ""
+   MINT_AUTHORITY_PRIVATE_KEY = ""
    ```
 4. Start the backend:
    ```sh
@@ -98,6 +128,9 @@ The frontend provides a user interface for interacting with the cross-chain brid
    VITE_BASE_RPC_URL=""
    VITE_MINT_TOPIC="Mint(address,uint256)"
    VITE_BURN_TOPIC="Burn(address,uint256)"
+   VITE_SOLANA_BRIDGE_ADDRESS = ""
+   VITE_BNFSCOIN_SOL_ADDRESS = ""
+   VITE_MINT_AUTHORITY_PRIVATE_KEY = ""
    ```
 4. Start the frontend:
    ```sh
@@ -106,23 +139,36 @@ The frontend provides a user interface for interacting with the cross-chain brid
 
 ---
 
-## Smart Contracts 🔗
+## Smart Contracts 📜
 
-The smart contracts implement the bridging logic and token standards.
+### Solana Bridge Program Overview
 
-### Contracts 📜
+The Solana Anchor program implements the bridging logic for tokens between Solana and EVM chains. Key features include:
 
-- **PolygonBridge.sol**: Handles bridging logic on the Polygon chain (This is the primary chain).  
+- **Token Minting & Burning:**  
+  - Allows minting of bridged tokens (`BNFSCOIN`) on Solana when assets are locked on the opposite chain.
+  - Supports burning tokens on Solana to initiate unlocks on the EVM side.
+
+- **User Balance Management:**  
+  - Maintains per-user balances via PDAs to track bridged assets and prevent double spending.
+
+- **Token Metadata:**  
+  - Initializes token mints with metadata (name, symbol) for bridged assets.
+
+- **Event Emission:**  
+  - Emits events (e.g., `Burn`) for off-chain indexers to track cross-chain activity.
+
+- **Security Checks:**  
+  - Ensures users cannot mint or burn more than their available balance.
+
+This program is designed to be called by the backend/indexer when cross-chain events are detected, enabling seamless and secure bridging between Solana and EVM networks.
+
+### Polygon/Base Bridge Contract Overview
+-  **PolygonBridge.sol**: Handles bridging logic on the Polygon chain (This is the primary chain).  
 - **BaseBridge.sol**: Handles bridging logic on the Base chain.  
 - **NFSCoin.sol**: ERC-20 token implementation.
 - **BNFSCoin.sol**: Another ERC-20 token implementation.  
 - **IBNFSCoin.sol**: Interface for the BNFSCoin contract.  
-
-### Deployment 🚀
-
-1. Compile and deploy `PolygonBridge.sol` & `NFSCoin.sol` contracts on the **Polygon zkEVM** network using your preferred tool (e.g., Hardhat, Remix).  
-2. Compile and deploy `BaseBridge.sol` & `BNFSCoin.sol` contracts on the **Base Sepolia** network using your preferred tool (e.g., Hardhat, Remix).  
-3. Update the `.env` files in both `backend` and `frontend` with the deployed contract addresses.  
 
 ---
 
@@ -130,15 +176,14 @@ The smart contracts implement the bridging logic and token standards.
 
 - **Frontend**: React, Recoil, ethers.js, wagmi  
 - **Backend**: Node.js, TypeScript, Bull, Redis, ethers.js  
-- **Smart Contracts**: Solidity, Foundry, OpenZeppelin Contracts  
+- **Smart Contracts**: Anchor, Solidity, Foundry, OpenZeppelin Contracts  
 
 ---
 
 ## Future Enhancements 🚀✨
 
-1. Extend bridging functionality to support **Solana** blockchain networks. 🌐  
-2. Add support for **multiple tokens** to enable broader use cases. 🪙  
-3. Upgrade the current **one-way bridge** to a **multi-directional bridge** for seamless transfers in both directions. 🔄  
+1. Add support for **multiple tokens** to enable broader use cases. 🪙  
+2. Upgrade the current **one-way bridge** to a **multi-directional bridge** for seamless transfers in both directions. 🔄
 
 ---
 
