@@ -19,6 +19,7 @@ jobs:
                 port: 22
                 script: |
                     cd Bridge-kun/
+                    git reset --hard HEAD
                     git pull origin master
                     export NVM_DIR="$HOME/.nvm"
                     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
