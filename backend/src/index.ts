@@ -196,7 +196,7 @@ logQueue.process(async (job)=> {
             const signature = await connection.sendTransaction(tx, [signerSolana]);
             console.log("Signature: " + signature);
 
-        //Deposited on Polygon for base
+        //Deposited on Polygon for base 
         } else if (queueData.topic === MINT_TOPIC) {
             console.log("came in polygon consumer");
             const txn: TransactionResponse = await baseBridgeContract.depositedOnOppositeChain(queueData.sender, queueData.amount);
