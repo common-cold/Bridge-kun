@@ -22,10 +22,12 @@
 
 ### Steps to Use:
 
-1. **Switch your wallet** to **Polygon zkEVM Cardona Testnet**.  
-2. **Airdrop yourself NFSCoin** using the button at the top right of the interface (you will receive **10 NFSCoin**).  
-3. You can now **bridge any amount of NFSCoin** from **Polygon zkEVM Cardona Testnet** to **Base Sepolia** or **Solana Devent**.  
-4. Similarly, you can bridge **BNFSCoin** **from Base Sepolia** or **Solana Devent** back to **Polygon zkEVM**.  
+1. **Switch your wallet** to **Polygon zkEVM Cardona Testnet**.
+2. Airdrop yourself some **Polygon Cardona ETH**. 
+3. **Airdrop yourself NFSCoin** using the button at the top right (you will receive **10 NFSCoin**).  
+4. Airdrop yourself some **Base Sepolia ETH** and **Solana Devent** on resepective wallets before transferring to respective chains
+5. You can now **bridge any amount of NFSCoin** from **Polygon zkEVM Cardona Testnet** to **Base Sepolia** or **Solana Devent**.
+6. Similarly, you can bridge **BNFSCoin** **from Base Sepolia** or **Solana Devent** back to **Polygon zkEVM**.  
 
 Enjoy seamless and secure token transfers! 🌉✨
 
